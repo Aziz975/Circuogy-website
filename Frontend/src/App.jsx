@@ -1,4 +1,6 @@
-import { Routes, Route } from "react-router-dom";
+
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import Home from "./components/Pages/Home";
 import Services from "./components/Pages/Services";
 import Technology from "./components/Pages/Technology";
@@ -15,8 +17,7 @@ import ExploreMining from "./components/Home/ExploreMining.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import AdminBlog from "./pages/AdminBlog.jsx";
-
-
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
   return (
@@ -24,30 +25,50 @@ function App() {
       <Navbar />
       <ScrollToTop />
 
-
       <Routes>
+        {/* Public website routes */}
         <Route path="/" element={<Home />} />
         {/* <Route path="/services" element={<Services />} /> */}
         <Route path="/technology" element={<Technology />} />
-        <Route path="/blog" element={<Blog/>} />
+        <Route path="/blog" element={<Blog />} />
         <Route path="/pledge" element={<Pledge />} />
         <Route path="/career" element={<Career />} />
         <Route path="/career1" element={<CareerApplication />} />
         <Route path="/about" element={<About />} />
         <Route path="/exploremining" element={<ExploreMining />} />
-        <Route path="/admin" element={<AdminLogin/>} />
-        <Route path="/admin/dashboard" element={<AdminBlog/>} />
-        <Route path="/admin/changepassword" element={<ChangePassword/>} />
 
+        {/* Public admin login */}
+        <Route path="/admin" element={<AdminLogin />} />
 
+        {/* Protected admin routes */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminBlog />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/changepassword"
+          element={
+            <ProtectedRoute>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Optional login URL alias */}
+        <Route
+          path="/admin/login"
+          element={<Navigate to="/admin" replace />}
+        />
       </Routes>
 
       <Footer />
-
     </>
   );
 }
 
 export default App;
-
-

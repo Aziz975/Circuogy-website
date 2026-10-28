@@ -105,7 +105,7 @@ export default function ChangePassword() {
 
         <div>
           <label className="mb-2 block text-sm font-semibold">
-            Confirm New Password
+            Confirm New Passwordd
           </label>
           <input
             type="password"
