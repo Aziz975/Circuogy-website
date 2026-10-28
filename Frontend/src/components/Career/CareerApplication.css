@@ -1,0 +1,554 @@
+
+        .career-page {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .career-shell {
+          animation: pageReveal 1s cubic-bezier(.16, 1, .3, 1) both;
+        }
+
+        @keyframes pageReveal {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        /* Background image */
+
+        .career-left-panel {
+          isolation: isolate;
+        }
+
+        .career-bg-image {
+          transform: scale(1.04);
+          filter: saturate(.8) contrast(1.02);
+          transition:
+            transform 1.2s cubic-bezier(.16, 1, .3, 1),
+            filter .8s ease;
+        }
+
+        .career-left-panel:hover .career-bg-image {
+          transform: scale(1.105);
+          filter: saturate(1.08) contrast(1.05);
+        }
+
+        .career-image-overlay {
+          z-index: 1;
+          background: linear-gradient(
+            180deg,
+            rgba(3, 78, 73, .96) 0%,
+            rgba(3, 78, 73, .89) 42%,
+            rgba(2, 57, 53, .68) 70%,
+            rgba(1, 40, 38, .58) 100%
+          );
+          transition: background .8s ease;
+        }
+
+        .career-left-panel:hover .career-image-overlay {
+          background: linear-gradient(
+            180deg,
+            rgba(3, 78, 73, .90) 0%,
+            rgba(3, 78, 73, .82) 42%,
+            rgba(2, 57, 53, .55) 70%,
+            rgba(1, 40, 38, .42) 100%
+          );
+        }
+
+        .career-image-glow {
+          z-index: 2;
+          pointer-events: none;
+          opacity: .25;
+          mix-blend-mode: screen;
+          background: radial-gradient(
+            circle at 50% 45%,
+            rgba(43, 220, 201, .30),
+            transparent 35%
+          );
+          transition: opacity .8s ease, transform 1s ease;
+        }
+
+        .career-left-panel:hover .career-image-glow {
+          opacity: .72;
+          transform: scale(1.08);
+        }
+
+        /* Moving light */
+
+        .career-image-shine {
+          z-index: 4;
+          pointer-events: none;
+          opacity: 0;
+          transform: skewX(-18deg);
+          background: linear-gradient(
+            100deg,
+            transparent 0%,
+            rgba(255, 255, 255, .04) 35%,
+            rgba(104, 240, 226, .22) 50%,
+            rgba(255, 255, 255, .04) 65%,
+            transparent 100%
+          );
+        }
+
+        .career-left-panel:hover .career-image-shine {
+          animation: imageShine 1.15s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        @keyframes imageShine {
+          0% { left: -100%; opacity: 0; }
+          20% { opacity: 1; }
+          100% { left: 150%; opacity: 0; }
+        }
+
+        /* Decorative orbs */
+
+        .career-orb {
+          position: absolute;
+          z-index: 3;
+          border-radius: 999px;
+          pointer-events: none;
+          filter: blur(1px);
+          opacity: .35;
+          transition:
+            transform 1s cubic-bezier(.16, 1, .3, 1),
+            opacity .7s ease;
+        }
+
+        .career-orb-one {
+          width: 190px;
+          height: 190px;
+          top: 12%;
+          right: -110px;
+          background: radial-gradient(
+            circle,
+            rgba(81, 228, 211, .34),
+            rgba(20, 142, 132, .04) 65%,
+            transparent 70%
+          );
+          animation: orbFloatOne 7s ease-in-out infinite;
+        }
+
+        .career-orb-two {
+          width: 120px;
+          height: 120px;
+          left: -60px;
+          bottom: 18%;
+          background: radial-gradient(
+            circle,
+            rgba(44, 180, 255, .30),
+            transparent 70%
+          );
+          animation: orbFloatTwo 8s ease-in-out infinite;
+        }
+
+        .career-orb-three {
+          width: 70px;
+          height: 70px;
+          right: 18%;
+          bottom: 8%;
+          background: radial-gradient(
+            circle,
+            rgba(113, 239, 222, .28),
+            transparent 70%
+          );
+          animation: orbFloatThree 5s ease-in-out infinite;
+        }
+
+        .career-left-panel:hover .career-orb {
+          opacity: .7;
+        }
+
+        @keyframes orbFloatOne {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50% { transform: translate3d(-25px, 20px, 0); }
+        }
+
+        @keyframes orbFloatTwo {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50% { transform: translate3d(25px, -30px, 0); }
+        }
+
+        @keyframes orbFloatThree {
+          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+          50% { transform: translate3d(-15px, -20px, 0) scale(1.15); }
+        }
+
+        /* Grid texture */
+
+        .career-grid {
+          z-index: 2;
+          pointer-events: none;
+          opacity: .07;
+          background-image:
+            linear-gradient(rgba(255, 255, 255, .18) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, .18) 1px, transparent 1px);
+          background-size: 55px 55px;
+          mask-image: linear-gradient(
+            to bottom,
+            transparent,
+            black 30%,
+            black 70%,
+            transparent
+          );
+          animation: gridMove 18s linear infinite;
+        }
+
+        @keyframes gridMove {
+          from { background-position: 0 0; }
+          to { background-position: 55px 55px; }
+        }
+
+        /* Left content reveal */
+
+        .career-fade {
+          opacity: 0;
+          transform: translateY(25px);
+          animation: contentReveal .9s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        .career-delay-1 { animation-delay: .15s; }
+        .career-delay-2 { animation-delay: .27s; }
+        .career-delay-3 { animation-delay: .39s; }
+        .career-delay-4 { animation-delay: .51s; }
+        .career-delay-5 { animation-delay: .63s; }
+
+        @keyframes contentReveal {
+          from {
+            opacity: 0;
+            transform: translateY(28px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .career-heading {
+          transform-origin: left center;
+        }
+
+        .career-heading-accent {
+          transition: color .4s ease, text-shadow .4s ease;
+        }
+
+        .career-left-panel:hover .career-heading-accent {
+          color: #8be4d8;
+          text-shadow: 0 0 25px rgba(101, 232, 216, .25);
+        }
+
+        /* Divider */
+
+        .career-divider {
+          background: linear-gradient(
+            90deg,
+            rgba(109, 163, 158, .75),
+            rgba(109, 163, 158, .05)
+          );
+          transform-origin: left;
+          animation: dividerReveal 1s .65s cubic-bezier(.16, 1, .3, 1) both;
+        }
+
+        @keyframes dividerReveal {
+          from { opacity: 0; transform: scaleX(0); }
+          to { opacity: 1; transform: scaleX(1); }
+        }
+
+        /* Application form effects */
+
+        .career-right-panel {
+          position: relative;
+        }
+
+        .career-right-panel::before {
+          content: "";
+          position: absolute;
+          width: 420px;
+          height: 420px;
+          top: 5%;
+          right: -180px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle,
+            rgba(41, 159, 143, .10),
+            transparent 68%
+          );
+          pointer-events: none;
+          animation: rightGlow 8s ease-in-out infinite;
+        }
+
+        @keyframes rightGlow {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-35px, 35px); }
+        }
+
+        .career-form-card {
+          position: relative;
+          z-index: 5;
+          opacity: 0;
+          transform: translate(55px, 15px) scale(.985);
+          animation: formCardReveal 1s .18s cubic-bezier(.16, 1, .3, 1) forwards;
+          transition: box-shadow .5s ease, transform .5s ease;
+        }
+
+        .career-form-card:hover {
+          box-shadow: 0 22px 65px rgba(27, 78, 70, .13);
+        }
+
+        @keyframes formCardReveal {
+          from {
+            opacity: 0;
+            transform: translate(55px, 15px) scale(.985);
+          }
+          to {
+            opacity: 1;
+            transform: translate(0, 0) scale(1);
+          }
+        }
+
+        .career-form-header {
+          opacity: 0;
+          animation: fadeUp .7s .55s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        .career-form-row {
+          opacity: 0;
+          transform: translateY(18px);
+          animation: formRowReveal .65s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        .career-row-1 { animation-delay: .62s; }
+        .career-row-2 { animation-delay: .72s; }
+        .career-row-3 { animation-delay: .82s; }
+
+        @keyframes formRowReveal {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Inputs */
+
+        .career-input {
+          transition:
+            border-color .25s ease,
+            box-shadow .25s ease,
+            transform .25s ease,
+            background .25s ease;
+        }
+
+        .career-input:hover {
+          border-color: #b7d6d0;
+          background: #fcfefd;
+        }
+
+        .career-input:focus {
+          transform: translateY(-1px);
+          box-shadow:
+            0 0 0 3px rgba(41, 159, 143, .08),
+            0 7px 20px rgba(41, 159, 143, .06);
+        }
+
+        /* File upload */
+
+        .career-upload-section {
+          opacity: 0;
+          transform: translateY(18px);
+          animation: formRowReveal .7s .94s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        .career-upload {
+          position: relative;
+          overflow: hidden;
+          transition:
+            transform .35s cubic-bezier(.16, 1, .3, 1),
+            border-color .35s ease,
+            background .35s ease,
+            box-shadow .35s ease;
+        }
+
+        .career-upload::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -120%;
+          width: 70%;
+          height: 100%;
+          transform: skewX(-20deg);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, .55),
+            transparent
+          );
+          transition: left .7s ease;
+          pointer-events: none;
+        }
+
+        .career-upload:hover {
+          transform: translateY(-3px);
+          border-color: #299f8f;
+          background: #edf8f5;
+          box-shadow: 0 12px 30px rgba(41, 159, 143, .08);
+        }
+
+        .career-upload:hover::before {
+          left: 150%;
+        }
+
+        .career-upload-icon {
+          transition: transform .4s cubic-bezier(.16, 1, .3, 1), filter .4s ease;
+        }
+
+        .career-upload:hover .career-upload-icon {
+          transform: translateY(-5px) scale(1.05);
+          filter: drop-shadow(0 7px 10px rgba(0, 140, 130, .20));
+        }
+
+        .career-browse-button {
+          position: relative;
+          z-index: 2;
+          transition:
+            transform .25s ease,
+            border-color .25s ease,
+            color .25s ease,
+            box-shadow .25s ease;
+        }
+
+        .career-browse-button:hover {
+          transform: translateY(-2px);
+          border-color: #299f8f;
+          color: #087d78;
+          box-shadow: 0 6px 15px rgba(41, 159, 143, .10);
+        }
+
+        /* Form bottom section */
+
+        .career-bottom {
+          opacity: 0;
+          transform: translateY(18px);
+          animation: formRowReveal .7s 1.05s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        /* Submit button */
+
+        .career-submit {
+          position: relative;
+          overflow: hidden;
+          transition:
+            transform .3s cubic-bezier(.16, 1, .3, 1),
+            background .3s ease,
+            box-shadow .3s ease;
+        }
+
+        .career-submit::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -120%;
+          width: 70%;
+          height: 100%;
+          transform: skewX(-20deg);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, .25),
+            transparent
+          );
+          transition: left .7s ease;
+        }
+
+        .career-submit:hover {
+          transform: translateY(-3px);
+          background: #0c887d;
+          box-shadow: 0 10px 28px rgba(22, 157, 144, .25);
+        }
+
+        .career-submit:hover::before {
+          left: 150%;
+        }
+
+        .career-submit-arrow {
+          position: relative;
+          z-index: 2;
+          transition: transform .3s ease;
+        }
+
+        .career-submit:hover .career-submit-arrow {
+          transform: translateX(5px);
+        }
+
+        /* Form footer */
+
+        .career-form-footer {
+          opacity: 0;
+          animation: fadeUp .7s 1.15s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        /* Responsive layout */
+
+        @media (max-width: 1024px) {
+          .career-left-panel {
+            min-height: 620px;
+          }
+
+          .career-bg-image {
+            transform: scale(1.02);
+          }
+
+          .career-form-card {
+            animation-delay: .1s;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .career-left-panel {
+            min-height: 650px;
+          }
+
+          .career-orb-one {
+            right: -150px;
+          }
+
+          .career-form-card {
+            border-radius: 18px;
+          }
+
+          .career-form-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+
+          .career-image-shine {
+            display: none;
+          }
+        }
+
+        /* Reduced motion accessibility */
+
+        @media (prefers-reduced-motion: reduce) {
+          *,
+          *::before,
+          *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-duration: .01ms !important;
+          }
+
+          .career-bg-image,
+          .career-form-card,
+          .career-fade,
+          .career-form-row,
+          .career-upload-section,
+          .career-bottom,
+          .career-form-header,
+          .career-form-footer {
+            opacity: 1 !important;
+            transform: none !important;
+          }
+        }
+     

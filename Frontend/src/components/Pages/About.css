@@ -1,0 +1,83 @@
+
+
+@keyframes revealLine {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+    filter: blur(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes tealGlow {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.reveal-line {
+  opacity: 0;
+  animation: revealLine 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.reveal-teal {
+  opacity: 0;
+  animation: tealGlow 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.65s;
+}
+
+.reveal-delay {
+  animation-delay: 0.25s;
+}
+
+
+/* part 2 animation  */
+
+@keyframes fadeUpSlow {
+  from {
+    opacity: 0;
+    transform: translateY(35px);
+    filter: blur(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.scroll-reveal {
+  opacity: 0;
+}
+
+.scroll-reveal.show {
+  animation: fadeUpSlow 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.scroll-delay-1 {
+  animation-delay: 0.15s;
+}
+
+.scroll-delay-2 {
+  animation-delay: 0.45s;
+}
+
+.scroll-delay-3 {
+  animation-delay: 0.75s;
+}
+
+.scroll-delay-4 {
+  animation-delay: 1s;
+}
