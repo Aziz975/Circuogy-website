@@ -15,7 +15,7 @@ import {
   Send,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { authApi } from "../../lib/api";
+import { authApi } from "../lib/api";
 
 const initialArticle = {
   id: 6,

@@ -11,10 +11,10 @@ import ScrollToTop from "./components/ScrollToTop.jsx";
 import Blog from "./components/Pages/Blog.jsx";
 import CareerApplication from "./components/Career/CareerApplication.jsx";
 import ExploreMining from "./components/Home/ExploreMining.jsx";
-import AdminBlog from "./components/AdminPage/AdminBlog.jsx";
-import AdminLogin from "./pages/AdminLogin.jsx";
-import ChangePassword from "./components/AdminPage/ChangePassword.jsx";
 
+import AdminLogin from "./pages/AdminLogin.jsx";
+import ChangePassword from "./pages/ChangePassword.jsx";
+import AdminBlog from "./pages/AdminBlog.jsx";
 
 
 
