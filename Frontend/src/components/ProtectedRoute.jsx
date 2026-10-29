@@ -27,7 +27,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (status === "denied") {
-    return <Navigate to="/admin/login" replace state={{ from: location }} />;
+    return <Navigate to="/admin" replace state={{ from: location }} />;
   }
 
   return children;
