@@ -332,13 +332,7 @@ export default function AdminBlog() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
-              to="/admin/changepassword"
-              className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold transition hover:bg-slate-50"
-            >
-              <LockKeyhole size={17} />
-              Change Password
-            </Link>
+           
 
             <button
               type="button"
