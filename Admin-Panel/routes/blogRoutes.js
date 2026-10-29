@@ -8,6 +8,7 @@ const router = Router();
 router.get("/public", c.listPublished); // keep BEFORE "/:slug"
 router.get("/", c.listPublished);
 router.get("/:slug", c.getPublishedBySlug);
+
  
 export default router;
  
