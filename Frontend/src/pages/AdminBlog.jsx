@@ -156,6 +156,30 @@ export default function AdminBlog() {
     }
   };
 
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      alert("Please select a PNG, JPG, or WebP image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5 MB.");
+      return;
+    }
+
+    try {
+      const { url } = await blogApi.uploadImage(file);
+      updateField("image", url);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const filteredBlogs = blogs.filter((blog) => {
     const query = search.toLowerCase();
     return [blog.title, blog.author, blog.category, blog.description].some(
@@ -445,8 +469,8 @@ export default function AdminBlog() {
                         <td className="px-5 py-4">
                           <span
                             className={`rounded-full px-3 py-1.5 text-xs font-semibold ${blog.status === "published"
-                                ? "bg-green-50 text-green-700"
-                                : "bg-amber-50 text-amber-700"
+                              ? "bg-green-50 text-green-700"
+                              : "bg-amber-50 text-amber-700"
                               }`}
                           >
                             {blog.status || "published"}
@@ -688,35 +712,7 @@ export default function AdminBlog() {
                             type="file"
                             accept="image/png,image/jpeg,image/webp"
                             className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-
-                              if (
-                                !["image/png", "image/jpeg", "image/webp"].includes(
-                                  file.type
-                                )
-                              ) {
-                                alert("Please select a PNG, JPG, or WebP image.");
-                                e.target.value = "";
-                                return;
-                              }
-
-                              if (file.size > 5 * 1024 * 1024) {
-                                alert("Image size must be less than 5 MB.");
-                                e.target.value = "";
-                                return;
-                              }
-
-                              const reader = new FileReader();
-
-                              reader.onload = () => {
-                                updateField("image", reader.result);
-                              };
-
-                              reader.readAsDataURL(file);
-                              e.target.value = "";
-                            }}
+                            onChange={handleImageChange}
                           />
                         </label>
 
@@ -753,35 +749,7 @@ export default function AdminBlog() {
                         type="file"
                         accept="image/png,image/jpeg,image/webp"
                         className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-
-                          if (
-                            !["image/png", "image/jpeg", "image/webp"].includes(
-                              file.type
-                            )
-                          ) {
-                            alert("Please select a PNG, JPG, or WebP image.");
-                            e.target.value = "";
-                            return;
-                          }
-
-                          if (file.size > 5 * 1024 * 1024) {
-                            alert("Image size must be less than 5 MB.");
-                            e.target.value = "";
-                            return;
-                          }
-
-                          const reader = new FileReader();
-
-                          reader.onload = () => {
-                            updateField("image", reader.result);
-                          };
-
-                          reader.readAsDataURL(file);
-                          e.target.value = "";
-                        }}
+                        onChange={handleImageChange}
                       />
                     </label>
                   )}

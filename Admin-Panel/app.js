@@ -16,6 +16,12 @@ const app = express();
 // Needed behind Nginx / Render / Railway etc. so rate limiting sees the real client IP.
 if (env.isProd) app.set('trust proxy', 1);
 
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// Serve uploaded images publicly.
+app.use('/uploads', express.static('uploads'));
+
+
 app.use(helmet());
 app.use(
   cors({
