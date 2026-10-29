@@ -33,3 +33,5 @@ CREATE TABLE IF NOT EXISTS blogs (
   KEY idx_blogs_category (category),
   CONSTRAINT fk_blogs_author FOREIGN KEY (author_id) REFERENCES admins (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
