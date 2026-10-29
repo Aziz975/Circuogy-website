@@ -52,4 +52,18 @@ export const blogApi = {
   create: (post) => request("/admin/blogs", { method: "POST", body: post }),
   update: (id, post) => request(`/admin/blogs/${id}`, { method: "PUT", body: post }),
   remove: (id) => request(`/admin/blogs/${id}`, { method: "DELETE" }),
+
+ uploadImage: async (file) => {
+    const fd = new FormData();
+    fd.append("image", file);
+    const res = await fetch(`${API_URL}/admin/blogs/upload`, {
+      method: "POST",
+      credentials: "include",
+      body: fd,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Image upload failed.");
+    return data;
+  },
+
 };

@@ -156,6 +156,30 @@ export default function AdminBlog() {
     }
   };
 
+
+    const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      alert("Please select a PNG, JPG, or WebP image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5 MB.");
+      return;
+    }
+
+    try {
+      const { url } = await blogApi.uploadImage(file);
+      updateField("image", url);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const filteredBlogs = blogs.filter((blog) => {
     const query = search.toLowerCase();
     return [blog.title, blog.author, blog.category, blog.description].some(
