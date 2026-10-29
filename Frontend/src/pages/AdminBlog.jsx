@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Upload,
@@ -15,20 +15,20 @@ import {
   Send,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { authApi } from "../lib/api";
+import { authApi, blogApi } from "../lib/api";
 
-const initialArticle = {
-  id: 6,
-  category: "Founder Growth",
-  author: "Saeem Rizvi",
-  date: "Oct 24, 2026",
-  title: "Circularity Is India's Competitive Advantage",
-  image: "/images/India’s Circularity Advantage.png",
-  description:
-    "Why India can leapfrog the mine-heavy path and lead in circular critical minerals.",
-  content: "",
-  status: "draft",
-};
+// const initialArticle = {
+//   id: 6,
+//   category: "Founder Growth",
+//   author: "Saeem Rizvi",
+//   date: "Oct 24, 2026",
+//   title: "Circularity Is India's Competitive Advantage",
+//   image: "/images/India’s Circularity Advantage.png",
+//   description:
+//     "Why India can leapfrog the mine-heavy path and lead in circular critical minerals.",
+//   content: "",
+//   status: "draft",
+// };
 
 const emptyArticle = {
   id: null,
@@ -46,35 +46,49 @@ const emptyArticle = {
   status: "draft",
 };
 
-export default function AdminBlog({ blogs: initialBlogs = [] }) {
+const toView = (b) => ({
+  ...b,
+  description: b.excerpt || "",
+  image: b.cover_image || "",
+  date: new Date(b.published_at || b.created_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }),
+});
+
+
+export default function AdminBlog() {
   const navigate = useNavigate();
 
-const handleLogout = async () => {
-  if (!window.confirm("Are you sure you want to log out?")) return;
+  const handleLogout = async () => {
+    if (!window.confirm("Are you sure you want to log out?")) return;
+    try {
+      await authApi.logout();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      navigate("/admin", { replace: true });
+    }
+  };
 
-  try {
-    await authApi.logout();
-  } catch (err) {
-    console.error("Logout failed:", err);
-  } finally {
-    navigate("/admin", { replace: true });
-  }
-};
-  const [blogs, setBlogs] = useState(() =>
-    initialBlogs.length > 0 ? initialBlogs : [initialArticle]
-  );
-
-  const [form, setForm] = useState({ ...initialArticle });
+  const [blogs, setBlogs] = useState([]);
+  const [form, setForm] = useState({ ...emptyArticle });
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
 
-  const [nextId, setNextId] = useState(() => {
-    const maxId = Math.max(
-      6,
-      ...initialBlogs.map((blog) => Number(blog.id) || 0)
-    );
-    return maxId + 1;
-  });
+  const loadBlogs = async () => {
+    try {
+      const res = await blogApi.adminList({ limit: 50 });
+      setBlogs(res.data.map(toView));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  useEffect(() => {
+    loadBlogs();
+  }, []);
 
   const updateField = (field, value) => {
     setForm((prev) => {
@@ -88,7 +102,6 @@ const handleLogout = async () => {
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "");
       }
-
       return updated;
     });
   };
@@ -98,81 +111,187 @@ const handleLogout = async () => {
     setEditingId(null);
   };
 
-  const handleSubmit = (status) => {
-    if (!form.title.trim()) {
-      alert("Please enter an article title.");
-      return;
-    }
-
-    if (!form.category) {
-      alert("Please select a category.");
-      return;
-    }
-
-    const article = {
-      ...form,
-      id: editingId ?? nextId,
+  const handleSubmit = async (status) => {
+    const payload = {
       title: form.title.trim(),
+      category: form.category,
+      author: form.author,
+      excerpt: form.description,
+      content: form.content,
+      cover_image: form.image,
       status,
     };
+    if (editingId === null && form.slug) payload.slug = form.slug;
 
-    if (editingId !== null) {
-      setBlogs((prev) =>
-        prev.map((blog) =>
-          blog.id === editingId ? article : blog
-        )
-      );
-    } else {
-      setBlogs((prev) => [article, ...prev]);
-      setNextId((prev) => prev + 1);
-    }
-
-    resetForm();
-  };
-
-  const handleEdit = (blog) => {
-    setForm({
-      ...emptyArticle,
-      ...blog,
-      slug:
-        blog.slug ||
-        (blog.title || "")
-          .toLowerCase()
-          .trim()
-          .replace(/['’]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, ""),
-    });
-
-    setEditingId(blog.id);
-
-    document.getElementById("create-article")?.scrollIntoView({
-      behavior: "smooth",
-    });
-  };
-
-  const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to delete this article?")) {
-      return;
-    }
-
-    setBlogs((prev) => prev.filter((blog) => blog.id !== id));
-
-    if (editingId === id) {
+    try {
+      if (editingId !== null) await blogApi.update(editingId, payload);
+      else await blogApi.create(payload);
+      await loadBlogs();
       resetForm();
+    } catch (err) {
+      const details = err.fields ? "\n" + Object.values(err.fields).join("\n") : "";
+      alert(err.message + details);
+    }
+  };
+
+  const handleEdit = async (blog) => {
+    try {
+      const res = await blogApi.adminGet(blog.id);
+      setForm({ ...emptyArticle, ...toView(res.data) });
+      setEditingId(blog.id);
+      document.getElementById("create-article")?.scrollIntoView({ behavior: "smooth" });
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this article?")) return;
+    try {
+      await blogApi.remove(id);
+      await loadBlogs();
+      if (editingId === id) resetForm();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
   const filteredBlogs = blogs.filter((blog) => {
     const query = search.toLowerCase();
-
-    return [
-      blog.title,
-      blog.author,
-      blog.category,
-      blog.description,
-    ].some((value) => (value || "").toLowerCase().includes(query));
+    return [blog.title, blog.author, blog.category, blog.description].some(
+      (value) => (value || "").toLowerCase().includes(query)
+    );
   });
+
+
+
+  // export default function AdminBlog({ blogs: initialBlogs = [] }) {
+  //   const navigate = useNavigate();
+
+  // const handleLogout = async () => {
+  //   if (!window.confirm("Are you sure you want to log out?")) return;
+
+  //   try {
+  //     await authApi.logout();
+  //   } catch (err) {
+  //     console.error("Logout failed:", err);
+  //   } finally {
+  //     navigate("/admin", { replace: true });
+  //   }
+  // };
+  //   const [blogs, setBlogs] = useState(() =>
+  //     initialBlogs.length > 0 ? initialBlogs : [initialArticle]
+  //   );
+
+  //   const [form, setForm] = useState({ ...initialArticle });
+  //   const [search, setSearch] = useState("");
+  //   const [editingId, setEditingId] = useState(null);
+
+  //   const [nextId, setNextId] = useState(() => {
+  //     const maxId = Math.max(
+  //       6,
+  //       ...initialBlogs.map((blog) => Number(blog.id) || 0)
+  //     );
+  //     return maxId + 1;
+  //   });
+
+  //   const updateField = (field, value) => {
+  //     setForm((prev) => {
+  //       const updated = { ...prev, [field]: value };
+
+  //       if (field === "title" && editingId === null) {
+  //         updated.slug = value
+  //           .toLowerCase()
+  //           .trim()
+  //           .replace(/['’]/g, "")
+  //           .replace(/[^a-z0-9]+/g, "-")
+  //           .replace(/^-|-$/g, "");
+  //       }
+
+  //       return updated;
+  //     });
+  //   };
+
+  //   const resetForm = () => {
+  //     setForm({ ...emptyArticle });
+  //     setEditingId(null);
+  //   };
+
+  //   const handleSubmit = (status) => {
+  //     if (!form.title.trim()) {
+  //       alert("Please enter an article title.");
+  //       return;
+  //     }
+
+  //     if (!form.category) {
+  //       alert("Please select a category.");
+  //       return;
+  //     }
+
+  //     const article = {
+  //       ...form,
+  //       id: editingId ?? nextId,
+  //       title: form.title.trim(),
+  //       status,
+  //     };
+
+  //     if (editingId !== null) {
+  //       setBlogs((prev) =>
+  //         prev.map((blog) =>
+  //           blog.id === editingId ? article : blog
+  //         )
+  //       );
+  //     } else {
+  //       setBlogs((prev) => [article, ...prev]);
+  //       setNextId((prev) => prev + 1);
+  //     }
+
+  //     resetForm();
+  //   };
+
+  //   const handleEdit = (blog) => {
+  //     setForm({
+  //       ...emptyArticle,
+  //       ...blog,
+  //       slug:
+  //         blog.slug ||
+  //         (blog.title || "")
+  //           .toLowerCase()
+  //           .trim()
+  //           .replace(/['’]/g, "")
+  //           .replace(/[^a-z0-9]+/g, "-")
+  //           .replace(/^-|-$/g, ""),
+  //     });
+
+  //     setEditingId(blog.id);
+
+  //     document.getElementById("create-article")?.scrollIntoView({
+  //       behavior: "smooth",
+  //     });
+  //   };
+
+  //   const handleDelete = (id) => {
+  //     if (!window.confirm("Are you sure you want to delete this article?")) {
+  //       return;
+  //     }
+
+  //     setBlogs((prev) => prev.filter((blog) => blog.id !== id));
+
+  //     if (editingId === id) {
+  //       resetForm();
+  //     }
+  //   };
+
+  //   const filteredBlogs = blogs.filter((blog) => {
+  //     const query = search.toLowerCase();
+
+  //     return [
+  //       blog.title,
+  //       blog.author,
+  //       blog.category,
+  //       blog.description,
+  //     ].some((value) => (value || "").toLowerCase().includes(query));
+  //   });
 
   return (
     <div className="min-h-screen bg-[#f8faf9] text-slate-800">
@@ -191,14 +310,14 @@ const handleLogout = async () => {
           <div className="flex flex-wrap gap-3">
            
 
-           <button
-  type="button"
-  onClick={handleLogout}
-  className="flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800"
->
-  <LogOut size={17} />
-  Logout
-</button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800"
+            >
+              <LogOut size={17} />
+              Logout
+            </button>
           </div>
         </div>
       </header>
@@ -321,15 +440,14 @@ const handleLogout = async () => {
                           {blog.date || "—"}
                         </td>
 
-                       
+
 
                         <td className="px-5 py-4">
                           <span
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                              blog.status === "published"
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${blog.status === "published"
                                 ? "bg-green-50 text-green-700"
                                 : "bg-amber-50 text-amber-700"
-                            }`}
+                              }`}
                           >
                             {blog.status || "published"}
                           </span>
@@ -443,10 +561,13 @@ const handleLogout = async () => {
                   <input
                     type="text"
                     value={form.date}
-                    onChange={(e) => updateField("date", e.target.value)}
-                    placeholder="Oct 24, 2026"
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
+                    readOnly
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-500 outline-none"
                   />
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    Set automatically when the article is published.
+                  </p>
                 </div>
               </div>
 
@@ -466,7 +587,7 @@ const handleLogout = async () => {
                 />
               </div>
 
-            
+
               {/* Author and Category */}
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
@@ -542,132 +663,132 @@ const handleLogout = async () => {
               </div>
 
               {/* Image */}
-             
-{/* Direct Cover Image Upload */}
-<div>
-  <label className="mb-2 block text-sm font-semibold text-slate-800">
-    Cover Image
-  </label>
 
-  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-5">
-    {form.image ? (
-      <div className="space-y-4">
-        <img
-          src={form.image}
-          alt={form.imageCaption || form.title || "Cover preview"}
-          className="max-h-64 w-full rounded-xl border border-slate-200 object-cover"
-        />
+              {/* Direct Cover Image Upload */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-800">
+                  Cover Image
+                </label>
 
-        <div className="flex flex-wrap gap-3">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-            <ImageIcon size={17} />
-            Change Image
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-5">
+                  {form.image ? (
+                    <div className="space-y-4">
+                      <img
+                        src={form.image}
+                        alt={form.imageCaption || form.title || "Cover preview"}
+                        className="max-h-64 w-full rounded-xl border border-slate-200 object-cover"
+                      />
 
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
+                      <div className="flex flex-wrap gap-3">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                          <ImageIcon size={17} />
+                          Change Image
 
-                if (
-                  !["image/png", "image/jpeg", "image/webp"].includes(
-                    file.type
-                  )
-                ) {
-                  alert("Please select a PNG, JPG, or WebP image.");
-                  e.target.value = "";
-                  return;
-                }
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
 
-                if (file.size > 5 * 1024 * 1024) {
-                  alert("Image size must be less than 5 MB.");
-                  e.target.value = "";
-                  return;
-                }
+                              if (
+                                !["image/png", "image/jpeg", "image/webp"].includes(
+                                  file.type
+                                )
+                              ) {
+                                alert("Please select a PNG, JPG, or WebP image.");
+                                e.target.value = "";
+                                return;
+                              }
 
-                const reader = new FileReader();
+                              if (file.size > 5 * 1024 * 1024) {
+                                alert("Image size must be less than 5 MB.");
+                                e.target.value = "";
+                                return;
+                              }
 
-                reader.onload = () => {
-                  updateField("image", reader.result);
-                };
+                              const reader = new FileReader();
 
-                reader.readAsDataURL(file);
-                e.target.value = "";
-              }}
-            />
-          </label>
+                              reader.onload = () => {
+                                updateField("image", reader.result);
+                              };
 
-          <button
-            type="button"
-            onClick={() => updateField("image", "")}
-            className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-          >
-            Remove Image
-          </button>
-        </div>
-      </div>
-    ) : (
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 py-7 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
-          <ImageIcon size={24} strokeWidth={1.7} />
-        </div>
+                              reader.readAsDataURL(file);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
 
-        <div>
-          <p className="text-sm font-semibold text-slate-800">
-            Upload your article cover image
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            PNG, JPG, or WebP · Maximum 5 MB
-          </p>
-        </div>
+                        <button
+                          type="button"
+                          onClick={() => updateField("image", "")}
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                        >
+                          Remove Image
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 py-7 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                        <ImageIcon size={24} strokeWidth={1.7} />
+                      </div>
 
-        <span className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white">
-          <Upload size={17} />
-          Choose Image
-        </span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">
+                          Upload your article cover image
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          PNG, JPG, or WebP · Maximum 5 MB
+                        </p>
+                      </div>
 
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
+                      <span className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white">
+                        <Upload size={17} />
+                        Choose Image
+                      </span>
 
-            if (
-              !["image/png", "image/jpeg", "image/webp"].includes(
-                file.type
-              )
-            ) {
-              alert("Please select a PNG, JPG, or WebP image.");
-              e.target.value = "";
-              return;
-            }
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
 
-            if (file.size > 5 * 1024 * 1024) {
-              alert("Image size must be less than 5 MB.");
-              e.target.value = "";
-              return;
-            }
+                          if (
+                            !["image/png", "image/jpeg", "image/webp"].includes(
+                              file.type
+                            )
+                          ) {
+                            alert("Please select a PNG, JPG, or WebP image.");
+                            e.target.value = "";
+                            return;
+                          }
 
-            const reader = new FileReader();
+                          if (file.size > 5 * 1024 * 1024) {
+                            alert("Image size must be less than 5 MB.");
+                            e.target.value = "";
+                            return;
+                          }
 
-            reader.onload = () => {
-              updateField("image", reader.result);
-            };
+                          const reader = new FileReader();
 
-            reader.readAsDataURL(file);
-            e.target.value = "";
-          }}
-        />
-      </label>
-    )}
-  </div>
-</div>
+                          reader.onload = () => {
+                            updateField("image", reader.result);
+                          };
 
-            
+                          reader.readAsDataURL(file);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+
 
               {/* Status */}
               <div>

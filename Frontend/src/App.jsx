@@ -17,7 +17,6 @@ import ExploreMining from "./components/Home/ExploreMining.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import AdminBlog from "./pages/AdminBlog.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
   return (
