@@ -13,6 +13,8 @@ const start = async () => {
     process.exit(1);
   }
 
+  
+
 
   const server = app.listen(env.port, () => {
     console.log(`API running on http://localhost:${env.port}`);
