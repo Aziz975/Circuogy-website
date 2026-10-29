@@ -17,18 +17,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { authApi, blogApi } from "../lib/api";
 
-// const initialArticle = {
-//   id: 6,
-//   category: "Founder Growth",
-//   author: "Saeem Rizvi",
-//   date: "Oct 24, 2026",
-//   title: "Circularity Is India's Competitive Advantage",
-//   image: "/images/India’s Circularity Advantage.png",
-//   description:
-//     "Why India can leapfrog the mine-heavy path and lead in circular critical minerals.",
-//   content: "",
-//   status: "draft",
-// };
 
 const emptyArticle = {
   id: null,
@@ -49,7 +37,7 @@ const emptyArticle = {
 const toView = (b) => ({
   ...b,
   description: b.excerpt || "",
-  image: b.cover_image || "",
+  image: b.image || "",
   date: new Date(b.published_at || b.created_at).toLocaleDateString("en-US", {
     month: "short",
     day: "2-digit",

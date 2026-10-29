@@ -60,6 +60,52 @@ const removeFile = (imgPath) => {
   });
 };
 
+// The dashboard may upload the image first (POST /upload -> { url }) and then send that
+// URL in the JSON body, or send the file together with the form. Both end up here.
+// Returns a "/uploads/..." path for our own files, an http(s) URL for external images,
+// or null when the value is empty.
+const IMAGE_KEYS = ['image', 'cover_image', 'image_url', 'imageUrl'];
+
+const normalizeImageRef = (value, req) => {
+  const v = String(value ?? '').trim();
+  if (!v) return null;
+  if (v.length > 500) throw new HttpError(400, 'Image path is too long.');
+
+  if (/^(blob|data):/i.test(v)) {
+    throw new HttpError(
+      400,
+      'The image was not uploaded. Upload the file first, then save the article with the uploaded URL.'
+    );
+  }
+
+  if (v.startsWith('/uploads/')) {
+    if (v.includes('..')) throw new HttpError(400, 'Invalid image path.');
+    return v;
+  }
+
+  try {
+    const url = new URL(v);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('bad protocol');
+    // Our own server: store just the path so it keeps working when the host changes.
+    if (req && url.host === req.get('host') && url.pathname.startsWith('/uploads/') && !url.pathname.includes('..')) {
+      return url.pathname;
+    }
+    return v;
+  } catch {
+    throw new HttpError(400, 'Image must be an uploaded file or an http(s) URL.');
+  }
+};
+
+// Deletes an uploaded image, unless another post still points to the same file.
+const deleteImageIfUnused = async (imgPath, excludeId) => {
+  if (!imgPath) return;
+  const [rows] = await pool.execute('SELECT id FROM blogs WHERE image = ? AND id <> ? LIMIT 1', [
+    imgPath,
+    excludeId,
+  ]);
+  if (!rows.length) removeFile(imgPath);
+};
+
 // If a request fails after multer saved the image, delete that image so no orphan files pile up.
 const discardUpload = (req) => {
   if (req.file?.filename) removeFile(`/uploads/blogs/${req.file.filename}`);
@@ -77,7 +123,7 @@ const withUploadCleanup = (handler) =>
 
 // Validates the form fields sent by the admin editor (multipart/form-data or JSON).
 // With partial=true only supplied fields are checked (used by PUT).
-const readInput = (body, partial = false) => {
+const readInput = (body, partial = false, req = null) => {
   const errors = {};
   const data = {};
   const has = (k) => body[k] !== undefined;
@@ -120,6 +166,10 @@ const readInput = (body, partial = false) => {
   if (has('content')) {
     data.content = typeof body.content === 'string' ? body.content : '';
   }
+
+  // Image sent as a path/URL (two-step upload). A file sent with the form is handled in create/update.
+  const imageKey = IMAGE_KEYS.find(has);
+  if (imageKey) data.image = normalizeImageRef(body[imageKey], req);
 
   if (has('slug')) {
     const v = slugify(str('slug'));
@@ -228,13 +278,14 @@ const getById = asyncHandler(async (req, res) => {
 
 // POST /api/admin/blogs   (multipart/form-data, optional "image" file)
 const create = withUploadCleanup(async (req, res) => {
-  const input = readInput(req.body ?? {}, false);
+  const input = readInput(req.body ?? {}, false, req);
   const status = input.status || 'draft';
   const content = input.content ?? '';
   assertPublishable(status, content);
 
   const slug = await uniqueSlug(input.slug || input.title);
-  const image = req.file ? `/uploads/blogs/${req.file.filename}` : null;
+  // An uploaded file wins; otherwise use the image URL/path from the request body.
+  const image = req.file ? `/uploads/blogs/${req.file.filename}` : input.image ?? null;
 
   const [result] = await pool.execute(
     `INSERT INTO blogs
@@ -264,17 +315,16 @@ const update = withUploadCleanup(async (req, res) => {
   if (!existing) throw new HttpError(404, 'Blog post not found.');
 
   const body = req.body ?? {};
-  const input = readInput(body, true);
+  const input = readInput(body, true, req);
 
   // Existing URLs stay stable unless a new slug is explicitly supplied.
   if (input.slug && input.slug !== existing.slug) input.slug = await uniqueSlug(input.slug, existing.id);
   else delete input.slug;
 
-  // Cover image: a new upload replaces the old one; removeImage=true clears it.
-  const replacingImage = Boolean(req.file);
-  const removingImage = !replacingImage && body.removeImage === 'true';
-  if (replacingImage) input.image = `/uploads/blogs/${req.file.filename}`;
-  else if (removingImage) input.image = null;
+  // Cover image: a new upload replaces the old one; removeImage=true (or an empty image
+  // value) clears it; an image URL/path in the body sets it.
+  if (req.file) input.image = `/uploads/blogs/${req.file.filename}`;
+  else if (body.removeImage === 'true') input.image = null;
 
   if (!Object.keys(input).length) throw new HttpError(400, 'Nothing to update.');
 
@@ -290,7 +340,9 @@ const update = withUploadCleanup(async (req, res) => {
   await pool.execute(`UPDATE blogs SET ${sets.join(', ')} WHERE id = ?`, [...params, existing.id]);
 
   // Delete the old file only after the database update succeeded.
-  if (replacingImage || removingImage) removeFile(existing.image);
+  if (Object.hasOwn(input, 'image') && input.image !== existing.image) {
+    await deleteImageIfUnused(existing.image, existing.id);
+  }
 
   const [rows] = await pool.execute('SELECT * FROM blogs WHERE id = ?', [existing.id]);
   res.json({ message: 'Blog post updated.', data: rows[0] });
@@ -302,7 +354,7 @@ const remove = asyncHandler(async (req, res) => {
   if (!rows.length) throw new HttpError(404, 'Blog post not found.');
 
   await pool.execute('DELETE FROM blogs WHERE id = ?', [req.params.id]);
-  removeFile(rows[0].image);
+  await deleteImageIfUnused(rows[0].image, Number(req.params.id));
 
   res.json({ message: 'Blog post deleted.' });
 });

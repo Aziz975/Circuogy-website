@@ -1,12 +1,12 @@
 import { Router } from 'express';
-const router = Router();
 import * as blog from '../controllers/blogController.js';
 import { requireAdmin } from '../middleware/auth.js';
-import multer from 'multer';
-import path from 'path';
-import crypto from 'crypto';
+import upload from '../middleware/upload.js';
+
+const router = Router();
 
 // Every route below needs a valid admin session.
+// (Runs before multer, so logged-out requests never write files to disk.)
 router.use(requireAdmin);
 
 // Express 5 dropped inline regex params, so validate :id here.
@@ -15,29 +15,26 @@ router.param('id', (req, res, next, id) => {
   next();
 });
 
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: 'uploads/',
-    filename: (req, file, cb) =>
-      cb(null, crypto.randomUUID() + path.extname(file.originalname).toLowerCase()),
-  }),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) =>
-    cb(null, ['image/png', 'image/jpeg', 'image/webp'].includes(file.mimetype)),
-});
-
+// Stand-alone image upload for clients that upload first and then save the article as JSON.
+// Returns the stored path and a full URL. Wrong file types now give a 400 error.
 router.post('/upload', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'Please upload a PNG, JPG or WebP image.' });
   }
-  res.json({ url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}` });
+  const path = `/uploads/blogs/${req.file.filename}`;
+  res.json({ path, url: `${req.protocol}://${req.get('host')}${path}` });
 });
 
 router.get('/', blog.listAll);
-router.post('/', blog.create);
+
+// upload.single('image') lets these routes accept BOTH:
+//   - multipart/form-data (the form fields + the image file in one request), and
+//   - plain JSON (multer skips non-multipart requests; the image is then a URL/path field).
+router.post('/', upload.single('image'), blog.create);
+
 router.get('/:id', blog.getById);
-router.put('/:id', blog.update);
+router.put('/:id', upload.single('image'), blog.update);
 router.delete('/:id', blog.remove);
 
 export default router;
+

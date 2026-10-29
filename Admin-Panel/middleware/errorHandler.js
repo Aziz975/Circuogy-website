@@ -1,3 +1,4 @@
+import multer from 'multer';
 import env from '../config/env.js';
 
 const notFound = (req, res) => {
@@ -13,6 +14,14 @@ const errorHandler = (err, req, res, next) => {
     return res.status(413).json({ message: 'Request body is too large.' });
   }
 
+  // Upload errors (file too large, unexpected field, ...)
+  if (err instanceof multer.MulterError) {
+    const tooLarge = err.code === 'LIMIT_FILE_SIZE';
+    return res.status(tooLarge ? 413 : 400).json({
+      message: tooLarge ? 'Image size must be less than 5 MB.' : `Upload failed: ${err.message}`,
+    });
+  }
+
   const status = err.status || 500;
   if (status >= 500) console.error(err);
 
@@ -23,3 +32,4 @@ const errorHandler = (err, req, res, next) => {
 };
 
 export { notFound, errorHandler };
+

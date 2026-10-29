@@ -3,6 +3,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import env from './config/env.js';
 import { apiLimiter } from './middleware/rateLimiters.js';
@@ -11,18 +13,20 @@ import authRoutes from './routes/authRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import adminBlogRoutes from './routes/adminBlogRoutes.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const app = express();
 
 // Needed behind Nginx / Render / Railway etc. so rate limiting sees the real client IP.
 if (env.isProd) app.set('trust proxy', 1);
 
+// ONE helmet() call. Its default "Cross-Origin-Resource-Policy: same-origin" would make the
+// browser block /uploads images shown by the React app on another port, so allow cross-origin.
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
-// Serve uploaded images publicly.
-app.use('/uploads', express.static('uploads'));
+// Serve uploaded images publicly. Absolute path, so it works no matter where node is started.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-app.use(helmet());
 app.use(
   cors({
     origin(origin, cb) {
@@ -44,8 +48,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/admin/blogs', adminBlogRoutes);
 
-
 app.use(notFound);
 app.use(errorHandler);
 
 export default app;
+
