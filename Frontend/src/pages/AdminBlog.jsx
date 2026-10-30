@@ -344,11 +344,11 @@ export default function AdminBlog() {
               </p>
 
               <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-                Your Articles
+                Your Blogs
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-slate-500">
-                View and manage your Circulogy journal articles.
+                View and manage your Circulogy journal Blogs.
               </p>
             </div>
 
@@ -358,7 +358,7 @@ export default function AdminBlog() {
               className="flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800"
             >
               <Plus size={18} />
-              Create Article
+              Create Blog
             </a>
           </div>
 
@@ -513,7 +513,7 @@ export default function AdminBlog() {
                   className="mt-5 inline-flex items-center gap-2 font-semibold text-teal-700 hover:text-teal-800"
                 >
                   <Plus size={17} />
-                  Create an article
+                  Create an blog
                 </a>
               </div>
             )}
@@ -549,7 +549,7 @@ export default function AdminBlog() {
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-800">
-                    Article ID
+                    Blog ID
                   </label>
 
                   <input
@@ -561,7 +561,7 @@ export default function AdminBlog() {
                   />
 
                   <p className="mt-1 text-xs text-slate-400">
-                    IDs are assigned automatically to new articles.
+                    IDs are assigned automatically to new blog
                   </p>
                 </div>
 
@@ -578,7 +578,7 @@ export default function AdminBlog() {
                   />
 
                   <p className="mt-1 text-xs text-slate-400">
-                    Set automatically when the article is published.
+                    Set automatically when the blog is published.
                   </p>
                 </div>
               </div>
@@ -586,7 +586,7 @@ export default function AdminBlog() {
               {/* Article Title */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
-                  Article Title
+                  Blog Title
                 </label>
 
                 <input
@@ -594,7 +594,7 @@ export default function AdminBlog() {
                   required
                   value={form.title}
                   onChange={(e) => updateField("title", e.target.value)}
-                  placeholder="Give your article a compelling title"
+                  placeholder="Give your blog compelling title"
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                 />
               </div>
@@ -654,7 +654,7 @@ export default function AdminBlog() {
                   onChange={(e) =>
                     updateField("description", e.target.value)
                   }
-                  placeholder="Write a short introduction to your article..."
+                  placeholder="Write a short introduction to your blog..."
                   className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3.5 text-sm leading-6 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                 />
               </div>
@@ -662,14 +662,14 @@ export default function AdminBlog() {
               {/* Content */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
-                  Article Content
+                  Blog Content
                 </label>
 
                 <textarea
                   rows={9}
                   value={form.content}
                   onChange={(e) => updateField("content", e.target.value)}
-                  placeholder="Start writing your article..."
+                  placeholder="Start writing your blog..."
                   className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3.5 text-sm leading-7 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                 />
               </div>
@@ -721,7 +721,7 @@ export default function AdminBlog() {
 
                       <div>
                         <p className="text-sm font-semibold text-slate-800">
-                          Upload your article cover image
+                          Upload your blog cover image
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
                           PNG, JPG, or WebP · Maximum 5 MB
@@ -749,12 +749,12 @@ export default function AdminBlog() {
               {/* Status */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
-                  Article Status
+                  Blog Status
                 </label>
 
                 <p className="text-sm leading-6 text-slate-500">
-                  Save Draft keeps the article as a draft in this dashboard.
-                  Publish Article marks it as published.
+                  Save Draft keeps the blog as a draft in this dashboard.
+                  Publish Blog marks it as published.
                 </p>
               </div>
 
@@ -774,7 +774,7 @@ export default function AdminBlog() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800"
                 >
                   <Send size={17} />
-                  {editingId !== null ? "Update Article" : "Publish Article"}
+                  {editingId !== null ? "Update Blog" : "Publish Blog"}
                 </button>
 
                 {editingId !== null && (

@@ -17,6 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx"
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import AdminBlog from "./pages/AdminBlog.jsx";
+import ContactPage from "./components/Navbar/ContactPage.jsx";
 
 function App() {
   return (
@@ -35,6 +36,8 @@ function App() {
         <Route path="/career1" element={<CareerApplication />} />
         <Route path="/about" element={<About />} />
         <Route path="/exploremining" element={<ExploreMining />} />
+        <Route path="/contactus" element={<ContactPage />} />
+
 
         {/* Public admin login */}
         <Route path="/admin" element={<AdminLogin />} />
