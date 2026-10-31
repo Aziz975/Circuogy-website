@@ -18,6 +18,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { authApi, blogApi } from "../lib/api";
 
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const imageUrl = (src) => {
+  if (!src) return "";
+  if (/^(https?:|data:|blob:)/.test(src)) return src;
+  return `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+};
+
 const emptyArticle = {
   id: null,
   category: "",
@@ -36,7 +44,7 @@ const emptyArticle = {
 
 const toView = (b) => ({
   ...b,
-  description: b.excerpt || "",
+  description: b.description || b.excerpt || "",
   image: b.image || "",
   date: new Date(b.published_at || b.created_at).toLocaleDateString("en-US", {
     month: "short",
@@ -416,7 +424,7 @@ export default function AdminBlog() {
                           <div className="flex items-center gap-3">
                             {blog.image ? (
                               <img
-                                src={blog.image}
+                                src={imageUrl(blog.image)}
                                 alt={blog.imageCaption || blog.title || ""}
                                 className="h-12 w-16 rounded-lg object-cover"
                               />
@@ -686,7 +694,7 @@ export default function AdminBlog() {
                   {form.image ? (
                     <div className="space-y-4">
                       <img
-                        src={form.image}
+                        src={imageUrl(form.image)}
                         alt={form.imageCaption || form.title || "Cover preview"}
                         className="max-h-64 w-full rounded-xl border border-slate-200 object-cover"
                       />

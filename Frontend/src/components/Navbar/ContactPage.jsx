@@ -1,186 +1,511 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 
 const ContactPage = () => {
+  useEffect(() => {
+    const elements = document.querySelectorAll("[data-reveal]");
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (prefersReducedMotion) {
+      elements.forEach((element) => {
+        element.classList.add("is-visible");
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px -30px 0px",
+      }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const renderLetters = (text, startDelay = 0) =>
+    Array.from(text).map((letter, index) => (
+      <span
+        key={`${index}-${letter}`}
+        aria-hidden="true"
+        className="contact-letter"
+        style={{
+          animationDelay: `${startDelay + index * 0.035}s`,
+        }}
+      >
+        {letter === " " ? "\u00A0" : letter}
+      </span>
+    ));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert("Thank you! Your enquiry has been submitted.");
+  };
+
   return (
-    <main className="min-h-screen bg-[#D9EFEC] overflow-hidden font-sans">
+    <main className="contact-page min-h-screen w-full max-w-none overflow-x-clip bg-[#D9EFEC] font-sans">
 
-      {/* HERO SECTION */}
-      <section className="h-[300px] px-5 pt-7 text-center">
+      {/* =====================================================
+          ANIMATION STYLES
+      ===================================================== */}
+      <style>{`
+        .contact-page {
+          --contact-teal: #299D8D;
+          --contact-dark: #07545A;
+        }
 
-        <p className="text-[9px] font-extrabold tracking-[2px] text-[#07545A] uppercase mb-5">
+        /* Main heading letter reveal */
+        .contact-letter {
+          display: inline-block;
+          opacity: 0;
+          transform: translate3d(0, 110%, 0);
+          animation: contactLetterReveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          will-change: transform, opacity;
+        }
+
+        @keyframes contactLetterReveal {
+          from {
+            opacity: 0;
+            transform: translate3d(0, 110%, 0);
+          }
+          to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        /* Main page entrance */
+        .contact-page-enter {
+          animation: contactPageEnter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes contactPageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(18px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Scroll reveal */
+        .contact-reveal {
+          opacity: 0;
+          transform: translate3d(0, 25px, 0);
+          transition:
+            opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .contact-reveal.is-visible {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+
+        .contact-delay-1 {
+          transition-delay: 0.1s;
+        }
+
+        .contact-delay-2 {
+          transition-delay: 0.2s;
+        }
+
+        .contact-delay-3 {
+          transition-delay: 0.3s;
+        }
+
+        /* Floating material artwork */
+        .contact-material {
+          animation: contactMaterialFloat 5s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        @keyframes contactMaterialFloat {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-7px);
+          }
+        }
+
+        /* Glowing button */
+        .contact-glow {
+          position: relative;
+          isolation: isolate;
+          box-shadow: 0 4px 14px rgba(7, 84, 90, 0.12);
+          transition:
+            background-color 0.3s ease,
+            box-shadow 0.35s ease,
+            transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .contact-glow::before {
+          content: "";
+          position: absolute;
+          inset: -3px;
+          z-index: -1;
+          border-radius: inherit;
+          background: linear-gradient(
+            120deg,
+            rgba(41, 157, 141, 0.75),
+            rgba(86, 197, 176, 0.25),
+            rgba(7, 84, 90, 0.7)
+          );
+          filter: blur(12px);
+          opacity: 0;
+          transition: opacity 0.35s ease;
+        }
+
+        .contact-glow:hover {
+          background-color: #299D8D;
+          box-shadow:
+            0 8px 24px rgba(41, 157, 141, 0.28),
+            0 0 30px rgba(41, 157, 141, 0.2);
+          transform: translateY(-2px);
+        }
+
+        .contact-glow:hover::before {
+          opacity: 1;
+        }
+
+        .contact-glow:active {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .contact-glow:focus-visible {
+          outline: 2px solid #299D8D;
+          outline-offset: 4px;
+        }
+
+        .contact-arrow {
+          transition:
+            transform 0.3s ease,
+            background-color 0.3s ease;
+        }
+
+        .contact-glow:hover .contact-arrow {
+          transform: rotate(45deg);
+          background-color: #07545A;
+        }
+
+        /* Input focus animation */
+        .contact-input {
+          transition:
+            border-color 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .contact-input:focus {
+          border-color: #299D8D;
+          box-shadow: 0 2px 0 rgba(41, 157, 141, 0.12);
+        }
+
+        /* Contact information hover */
+        .contact-info-item {
+          transition: transform 0.3s ease;
+        }
+
+        .contact-info-item:hover {
+          transform: translateY(-3px);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .contact-letter {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
+
+          .contact-page-enter,
+          .contact-reveal {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+          }
+
+          .contact-material {
+            animation: none !important;
+          }
+
+          .contact-glow,
+          .contact-info-item {
+            transition: none !important;
+          }
+        }
+      `}</style>
+
+      {/* =====================================================
+          HERO SECTION
+      ===================================================== */}
+      <section className="contact-page-enter relative flex min-h-[300px] w-full flex-col items-center justify-center px-4 pb-9 pt-10 text-center sm:min-h-[330px] sm:px-6 sm:pt-12 md:px-8 lg:min-h-[350px] lg:px-10 lg:pt-14">
+
+        {/* Background glow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-10 -z-0 h-40 w-[75%] max-w-[700px] -translate-x-1/2 rounded-full bg-[#8CCFC5]/25 blur-[70px]"
+        />
+
+        <p
+          data-reveal
+          className="contact-reveal relative mb-5 text-[14px] font-extrabold uppercase tracking-[2px] text-[#07545A] sm:text-[16px] md:text-[18px]"
+        >
           Contact Circulogy
         </p>
 
-        <h1 className="text-[36px] sm:text-[48px] md:text-[58px] lg:text-[60px] leading-[0.99] tracking-[-2px] font-extrabold">
-          <span className="text-[#299D8D]">
-            Contact us to build the next
+        <h1 className="relative z-10 max-w-[1250px] text-[32px] font-semibold leading-[1.12] tracking-[-1.2px] sm:text-[40px] sm:tracking-[-1.5px] md:text-[52px] lg:text-[66px] lg:tracking-[-2px] xl:text-[74px]">
+
+          <span className="block pb-1 text-[#299D8D]">
+            {renderLetters("Contact us to build the next", 0.1)}
           </span>
-          <br />
-          <span className="text-black">
-            material recovery{" "}
+
+          <span className="mt-1 block text-black">
+            <span className="inline-block">
+              {renderLetters("material recovery", 0.55)}
+            </span>{" "}
+            <span className="inline-block text-[#299D8D]">
+              {renderLetters("solution.", 1.15)}
+            </span>
           </span>
-          <span className="text-[#299D8D]">
-            solution.
-          </span>
+
         </h1>
 
-        <p className="mt-7 text-[14px] sm:text-[15px] leading-6 text-[#58736F]">
+        <p
+          data-reveal
+          className="contact-reveal contact-delay-2 relative mx-auto mt-6 max-w-[760px] text-[14px] leading-6 text-[#58736F] sm:text-[16px] md:text-[18px] md:leading-7"
+        >
           Talk to us about collection, recovered materials, technology partnerships
           <br className="hidden sm:block" />
           or working with Circulogy.
         </p>
       </section>
 
-      {/* CONTACT SECTION */}
-      <section className="relative bg-[#FAFCFB] rounded-t-[23px] min-h-[253px]">
+      {/* =====================================================
+          CONTACT SECTION
+      ===================================================== */}
+      <section className="relative w-full rounded-t-[23px] bg-[#FAFCFB]">
 
-        <div className="max-w-[1000px] mx-auto px-6 lg:px-0">
+        <div className="mx-auto w-full px-5 sm:px-7 md:px-8 lg:px-10 xl:px-12 2xl:px-16">
 
-          <div className="grid grid-cols-1 md:grid-cols-[240px_275px_1fr] gap-8 md:gap-0 pt-10 md:pt-[45px]">
+          <div className="grid grid-cols-1 gap-10 pb-10 pt-10 md:grid-cols-[0.85fr_1.15fr] md:gap-8 md:pb-12 md:pt-12 lg:gap-10 lg:pt-14 xl:grid-cols-[0.8fr_1.2fr] xl:gap-12">
 
-            {/* MATERIAL IMAGE */}
-            <div className="relative hidden md:block">
-              <img
-                src="/images/material-sculpture.png"
-                alt="Recovered copper and industrial materials"
-                className="absolute w-[215px] max-w-none h-auto object-contain left-[-3px] top-[-77px] z-10"
-              />
-            </div>
+            {/* LEFT COLUMN */}
+            <div className="grid min-w-0 grid-cols-1 gap-6 sm:grid-cols-[180px_minmax(0,1fr)] md:grid-cols-1 lg:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)] lg:gap-5">
 
-            {/* CONTACT INFORMATION */}
-            <div className="md:pr-7 md:border-r md:border-[#E5ECE9]">
+              {/* MATERIAL IMAGE */}
+              <div
+                data-reveal
+                className="contact-reveal relative hidden items-start justify-center sm:flex md:hidden lg:flex"
+              >
+                <img
+                  src="/images/material-sculpture.png"
+                  alt="Recovered copper and industrial materials"
+                  className="contact-material h-auto w-full max-w-[200px] object-contain"
+                />
+              </div>
 
-              <p className="text-[9px] font-extrabold tracking-[1.3px] uppercase text-[#299D8D] mb-6">
-                Contact Information
-              </p>
+              {/* CONTACT INFORMATION */}
+              <div
+                data-reveal
+                className="contact-reveal min-w-0 md:border-r md:border-[#E5ECE9] md:pr-6 lg:border-r-0 lg:pr-0 xl:border-r xl:border-[#E5ECE9] xl:pr-7"
+              >
+                <p className="mb-6 text-[16px] font-extrabold uppercase tracking-[1.1px] text-[#299D8D] sm:text-[17px] sm:tracking-[1.3px]">
+                  Contact Information
+                </p>
 
-              <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+                <div className="grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-2 lg:gap-x-6">
 
-                <div>
-                  <h3 className="text-[11px] font-bold text-[#152A27] mb-2">
-                    Email
-                  </h3>
-                  <p className="text-[9px] text-[#82938F]">
-                    info@circulogy.com
-                  </p>
+                  {/* EMAIL */}
+                  <div className="contact-info-item min-w-0">
+                    <h3 className="mb-2 text-[15px] font-bold text-[#152A27]">
+                      Email
+                    </h3>
+
+                    <a
+                      href="mailto:info@circulogy.com"
+                      className="break-words text-[12px] text-[#82938F] transition-colors hover:text-[#299D8D] sm:text-[13px]"
+                    >
+                      info@circulogy.com
+                    </a>
+                  </div>
+
+                  {/* PHONE */}
+                  <div className="contact-info-item min-w-0">
+                    <h3 className="mb-2 text-[15px] font-bold text-[#152A27]">
+                      Phone
+                    </h3>
+
+                    <a
+                      href="tel:+918650907362"
+                      className="text-[12px] text-[#82938F] transition-colors hover:text-[#299D8D] sm:text-[13px]"
+                    >
+                      +91 86509 07362
+                    </a>
+                  </div>
+
+                  {/* OFFICE ADDRESS */}
+                  <div className="contact-info-item min-w-0">
+                    <h3 className="mb-2 text-[15px] font-bold text-[#152A27]">
+                      Office Address
+                    </h3>
+
+                    <p className="text-[12px] leading-[19px] text-[#82938F] sm:text-[13px]">
+                      18/15B, Silver Wing Wave One, Sector 18,
+                      GB Nagar, Noida, Uttar Pradesh 201301
+                    </p>
+                  </div>
+
+                  {/* BUSINESS HOURS */}
+                  <div className="contact-info-item min-w-0">
+                    <h3 className="mb-2 text-[15px] font-bold text-[#152A27]">
+                      Business Hours
+                    </h3>
+
+                    <p className="text-[12px] leading-[19px] text-[#82938F] sm:text-[13px]">
+                      Mon-Sat
+                      <br />
+                      10:00 AM-7:00 PM
+                    </p>
+                  </div>
+
                 </div>
-
-                <div>
-                  <h3 className="text-[11px] font-bold text-[#152A27] mb-2">
-                    Phone
-                  </h3>
-                  <p className="text-[9px] text-[#82938F]">
-                    +91 86509 07362
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-[11px] font-bold text-[#152A27] mb-2">
-                    Office Address
-                  </h3>
-                  <p className="text-[9px] leading-[17px] text-[#82938F]">
-                    18/15B, Silver Wing Wave One, Sector 18,
-                    GB Nagar, Noida, Uttar Pradesh 201301
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-[11px] font-bold text-[#152A27] mb-2">
-                    Business Hours
-                  </h3>
-                  <p className="text-[9px] leading-[17px] text-[#82938F]">
-                    Mon-Sat
-                    <br />
-                    10:00 AM-7:00 PM
-                  </p>
-                </div>
-
               </div>
             </div>
 
-            {/* CONTACT FORM */}
-            <div className="md:pl-[38px] md:pr-0">
+            {/* RIGHT COLUMN: CONTACT FORM */}
+            <div
+              data-reveal
+              className="contact-reveal min-w-0 md:border-l md:border-[#E5ECE9] md:pl-7 lg:border-l-0 lg:pl-0 xl:pl-8"
+            >
 
-              <h2 className="text-[23px] font-extrabold tracking-[-0.8px] text-[#102522] leading-tight">
+              <h2 className="text-[24px] font-extrabold leading-tight tracking-[-0.8px] text-[#102522] sm:text-[27px] lg:text-[30px]">
                 Start the conversation
               </h2>
 
-              <p className="text-[9px] text-[#9AA9A5] mt-1 mb-5">
+              <p className="mb-7 mt-2 text-[12px] text-[#9AA9A5] sm:text-[13px]">
                 Share your requirement and we'll route it to the relevant team.
               </p>
 
               <form
-                className="grid grid-cols-1 sm:grid-cols-2 gap-x-[22px] gap-y-5"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  alert("Thank you! Your enquiry has been submitted.");
-                }}
+                className="grid grid-cols-1 gap-x-7 gap-y-7 sm:grid-cols-2 lg:gap-x-10"
+                onSubmit={handleSubmit}
               >
 
-                <div>
-                  <label className="block text-[8px] font-bold tracking-[0.5px] text-[#899B96] mb-2">
+                {/* FULL NAME */}
+                <div className="min-w-0">
+                  <label
+                    htmlFor="contact-full-name"
+                    className="mb-2 block text-[10px] font-bold tracking-[0.8px] text-[#899B96]"
+                  >
                     FULL NAME
                   </label>
+
                   <input
+                    id="contact-full-name"
                     type="text"
+                    name="fullName"
+                    placeholder="Enter your full name"
+                    autoComplete="name"
                     required
-                    className="w-full bg-transparent border-b border-[#DFE8E5] pb-2 outline-none text-sm text-[#18332E] focus:border-[#299D8D]"
+                    className="contact-input w-full min-w-0 border-0 border-b border-[#DFE8E5] bg-transparent pb-3 text-sm text-[#18332E] outline-none placeholder:text-[#B2BFBB]"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[8px] font-bold tracking-[0.5px] text-[#899B96] mb-2">
+                {/* WORK EMAIL */}
+                <div className="min-w-0">
+                  <label
+                    htmlFor="contact-email"
+                    className="mb-2 block text-[10px] font-bold tracking-[0.8px] text-[#899B96]"
+                  >
                     WORK EMAIL
                   </label>
+
                   <input
+                    id="contact-email"
                     type="email"
+                    name="email"
+                    placeholder="you@company.com"
+                    autoComplete="email"
                     required
-                    className="w-full bg-transparent border-b border-[#DFE8E5] pb-2 outline-none text-sm text-[#18332E] focus:border-[#299D8D]"
+                    className="contact-input w-full min-w-0 border-0 border-b border-[#DFE8E5] bg-transparent pb-3 text-sm text-[#18332E] outline-none placeholder:text-[#B2BFBB]"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[8px] font-bold tracking-[0.5px] text-[#899B96] mb-2">
+                {/* ORGANISATION */}
+                <div className="min-w-0">
+                  <label
+                    htmlFor="contact-organisation"
+                    className="mb-2 block text-[10px] font-bold tracking-[0.8px] text-[#899B96]"
+                  >
                     ORGANISATION
                   </label>
+
                   <input
+                    id="contact-organisation"
                     type="text"
-                    className="w-full bg-transparent border-b border-[#DFE8E5] pb-2 outline-none text-sm text-[#18332E] focus:border-[#299D8D]"
+                    name="organisation"
+                    placeholder="Your organisation"
+                    autoComplete="organization"
+                    className="contact-input w-full min-w-0 border-0 border-b border-[#DFE8E5] bg-transparent pb-3 text-sm text-[#18332E] outline-none placeholder:text-[#B2BFBB]"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[8px] font-bold tracking-[0.5px] text-[#899B96] mb-2">
+                {/* DISCUSSION TOPIC */}
+                <div className="min-w-0">
+                  <label
+                    htmlFor="contact-discussion"
+                    className="mb-2 block text-[10px] font-bold tracking-[0.8px] text-[#899B96]"
+                  >
                     WHAT WOULD YOU LIKE TO DISCUSS?
                   </label>
+
                   <input
+                    id="contact-discussion"
                     type="text"
+                    name="discussion"
+                    placeholder="Tell us about your requirement"
                     required
-                    className="w-full bg-transparent border-b border-[#DFE8E5] pb-2 outline-none text-sm text-[#18332E] focus:border-[#299D8D]"
+                    className="contact-input w-full min-w-0 border-0 border-b border-[#DFE8E5] bg-transparent pb-3 text-sm text-[#18332E] outline-none placeholder:text-[#B2BFBB]"
                   />
                 </div>
 
-                <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between items-center gap-4 mt-0">
+                {/* FORM FOOTER */}
+                <div className="flex flex-col gap-5 pb-4 pt-1 sm:col-span-2 lg:flex-row lg:items-center lg:justify-between">
 
-                  <p className="text-[8px] text-[#9AA9A5]">
+                  <p className="max-w-[340px] text-[12px] leading-5 text-[#9AA9A5] sm:text-[13px]">
                     Material recovery, partnerships, careers and media.
                   </p>
 
                   <button
                     type="submit"
-                    className="flex items-center gap-3 bg-[#07545A] hover:bg-[#299D8D] transition-colors text-white rounded-full pl-5 pr-2 py-[7px] text-[9px] font-bold whitespace-nowrap"
+                    className="contact-glow group inline-flex shrink-0 items-center gap-3 self-start whitespace-nowrap rounded-full bg-[#07545A] py-[7px] pl-5 pr-2 text-[14px] font-bold text-white sm:text-[15px] lg:self-auto"
                   >
                     Send enquiry
 
-                    <span className="w-[20px] h-[20px] rounded-full bg-[#56C5B0] flex items-center justify-center">
+                    <span className="contact-arrow flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-[#56C5B0]">
                       <svg
                         width="11"
                         height="11"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="white"
-                        strokeWidth="2.5"
+                        strokeWidth="3"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
@@ -197,156 +522,53 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* MOBILE IMAGE */}
-      <div className="md:hidden bg-[#FAFCFB] flex justify-center pb-8">
+      {/* =====================================================
+          MOBILE MATERIAL IMAGE
+      ===================================================== */}
+      <div
+        data-reveal
+        className="contact-reveal flex justify-center bg-[#FAFCFB] px-5 pb-8 sm:hidden"
+      >
         <img
           src="/images/material-sculpture.png"
           alt="Recovered industrial materials"
-          className="w-[190px] h-auto object-contain"
+          className="contact-material h-auto w-[190px] max-w-full object-contain"
         />
       </div>
 
 
+
    
     <section className="w-full bg-white px-6 py-10 md:px-12">
-      <div className="mx-auto max-w-[1150px]">
+      <div className="mx-auto max-w-[1340px]">
         {/* Heading */}
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0b4f5c]">
+        <p className="text-[15px] font-extrabold uppercase tracking-[0.2em] text-[#0b4f5c]">
           Our Office
         </p>
-        <h2 className="mt-3 text-4xl font-extrabold text-[#0a2a2a] md:text-[44px]">
+        <h2 className="mt-3 text-4xl font-extrabold text-[#0a2a2a] md:text-[50px]">
           Find us in <span className="text-[#2a9d8f]">Noida.</span>
         </h2>
-        <p className="mt-3 text-[13px] text-[#5c6f6f]">
+        <p className="mt-3 text-[15px] text-[#5c6f6f]">
           A clear view of our office and the surrounding Sector 132 landmarks.
         </p>
 
         {/* Map container */}
-        <div className="relative mt-5 overflow-hidden rounded-[28px] border border-[#cfe3df] bg-gradient-to-r from-[#eaf4f2] to-[#f5f5f1]">
+        <div className="relative mt-5 p-5 rounded-[28px] border border-[#cfe3df] bg-gradient-to-r from-[#eaf4f2] to-[#f5f5f1]">
           {/* Map */}
-          <div className="h-[560px] w-full md:ml-0 md:h-[433px] md:pl-[300px]">
-            <svg
-              viewBox="0 0 817 433"
-              preserveAspectRatio="xMidYMid slice"
-              className="h-full w-full"
-              xmlns="http://www.w3.org/2000/svg"
-              fontFamily="inherit"
-            >
-              {/* base */}
-              <rect width="817" height="433" fill="#f5f5f1" />
-              <polygon points="35,20 300,10 330,200 150,230 20,180" fill="#f1eee8" />
-              <polygon points="440,260 817,200 817,433 470,433" fill="#efede7" />
-              <polygon points="20,280 300,330 380,433 20,433" fill="#f1eee8" />
-
-              {/* roads */}
-              <g fill="none" strokeLinecap="round">
-                {/* main diagonal */}
-                <path d="M425,440 L770,0" stroke="#ffffff" strokeWidth="40" />
-                <path d="M425,440 L770,0" stroke="#cdd9da" strokeWidth="30" />
-                {/* curved upper road */}
-                <path d="M10,148 C150,175 300,215 470,238" stroke="#ffffff" strokeWidth="26" />
-                <path d="M10,148 C150,175 300,215 470,238" stroke="#d3dedf" strokeWidth="18" />
-                {/* right curved road */}
-                <path d="M585,232 C700,248 790,285 830,315" stroke="#ffffff" strokeWidth="18" />
-                <path d="M585,232 C700,248 790,285 830,315" stroke="#d9e2e2" strokeWidth="10" />
-                {/* Veer Kalyan Marg */}
-                <path d="M-10,305 C150,305 290,350 410,440" stroke="#ffffff" strokeWidth="40" />
-                <path d="M-10,305 C150,305 290,350 410,440" stroke="#cdd9da" strokeWidth="30" />
-                {/* small lanes */}
-                <path d="M85,10 C110,40 130,60 150,75" stroke="#d6e0e0" strokeWidth="8" />
-                <path d="M180,170 C200,190 230,215 260,235" stroke="#d6e0e0" strokeWidth="8" />
-                <path d="M340,250 C380,280 420,310 450,340" stroke="#d6e0e0" strokeWidth="8" />
-              </g>
-
-              {/* buildings */}
-              <g fill="#e2e6e5" stroke="#d3dad9" strokeWidth="1">
-                <rect x="102" y="32" width="115" height="55" rx="8" transform="rotate(-12 160 60)" />
-                <rect x="234" y="33" width="120" height="60" rx="8" transform="rotate(8 294 63)" />
-                <rect x="68" y="85" width="165" height="65" rx="8" transform="rotate(-10 150 117)" />
-                <rect x="270" y="92" width="105" height="62" rx="8" transform="rotate(15 323 123)" />
-                <rect x="135" y="188" width="130" height="65" rx="8" transform="rotate(20 200 220)" />
-                <rect x="205" y="262" width="170" height="80" rx="8" transform="rotate(20 290 302)" />
-                <rect x="296" y="350" width="105" height="55" rx="8" transform="rotate(25 348 378)" />
-                <rect x="585" y="95" width="120" height="50" rx="8" transform="rotate(-30 645 120)" />
-                <rect x="637" y="160" width="130" height="75" rx="8" transform="rotate(-25 702 197)" />
-                <rect x="605" y="275" width="100" height="85" rx="8" transform="rotate(-12 655 317)" />
-              </g>
-
-              {/* office plot */}
-              <polygon
-                points="442,102 577,123 562,207 420,177"
-                fill="#c6e8e0"
-                stroke="#6bbdb0"
-                strokeWidth="2"
-              />
-              <polygon points="465,115 515,123 510,145 460,137" fill="#b3ddd4" />
-              <polygon points="455,150 535,165 530,185 450,170" fill="#b3ddd4" />
-
-              {/* labels */}
-              <g fontSize="9.5" fontWeight="700" fill="#5d6b6b" textAnchor="middle">
-                <text x="183" y="93">Step by Step School</text>
-                <text x="108" y="192">Orion One 32</text>
-                <text x="228" y="267">Logix Technova</text>
-                <text x="305" y="370">Adobe Systems</text>
-                <text x="527" y="219">ATS BOUQUET</text>
-                <text x="677" y="70">Genesis Global School</text>
-              </g>
-              <g fontSize="8" fill="#8a9696" textAnchor="middle">
-                <text x="150" y="107">Senior Wing</text>
-                <text x="666" y="85">Gate 4</text>
-                <text x="637" y="372">Jaypee Klassic</text>
-              </g>
-              <text
-                x="160" y="342" fontSize="8.5" fontWeight="700" fill="#5d6b6b"
-                textAnchor="middle" letterSpacing="1" transform="rotate(20 160 342)"
-              >
-                VEER KALYAN MARG
-              </text>
-              <text
-                x="765" y="85" fontSize="8" fontWeight="700" fill="#6b7a7a"
-                textAnchor="middle" transform="rotate(-58 765 85)"
-              >
-                JAYPEE WISHTOWN INTERNAL ROAD
-              </text>
-
-              {/* sector pill */}
-              <g>
-                <rect x="703" y="13" width="95" height="24" rx="12" fill="#fff" stroke="#e3e9e8" />
-                <circle cx="718" cy="25" r="3.5" fill="#2a9d8f" />
-                <text x="728" y="28.5" fontSize="8.5" fontWeight="700" fill="#2b3b3b">
-                  SECTOR 132
-                </text>
-              </g>
-
-              {/* office label */}
-              <rect x="533" y="122" width="133" height="35" rx="17.5" fill="#0b4a54" />
-              <text
-                x="599.5" y="143.5" fontSize="10" fontWeight="800" fill="#fff"
-                textAnchor="middle" letterSpacing="0.6"
-              >
-                CIRCULOGY OFFICE
-              </text>
-
-              {/* pin */}
-              <ellipse cx="502" cy="192" rx="10" ry="3" fill="#000" opacity="0.12" />
-              <path
-                d="M502,190 C486,162 471,150 471,134 A31,31 0 1 1 533,134 C533,150 518,162 502,190 Z"
-                fill="#0b4a54"
-              />
-              <circle cx="502" cy="146" r="12" fill="#7fd6c8" />
-              <circle cx="502" cy="146" r="5" fill="#fff" />
-            </svg>
+          <div className="h-[560px] overflow-hidden  w-full md:ml-0 md:h-[533px] md:pl-[300px]">
+            <img src="images/circulogymap.png" alt=""
+            className="w-full h-full rounded-3xl" />
           </div>
 
           {/* Info card */}
           <div className="absolute left-5 top-5 w-[253px] rounded-3xl bg-white p-6 shadow-[0_10px_40px_rgba(11,79,92,0.12)] max-md:static max-md:m-5 max-md:w-auto md:bottom-5">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#2a9d8f]">
+            <p className="text-[12px] font-bold uppercase tracking-[0.2em] text-[#2a9d8f]">
               Visit Circulogy
             </p>
             <h3 className="mt-3 text-[21px] font-extrabold leading-tight text-[#0a2a2a]">
               Our Noida office
             </h3>
-            <p className="mt-3 text-[11px] leading-[1.6] text-[#6b7b7b]">
+            <p className="mt-3 text-[13px] leading-[1.6] text-[#6b7b7b]">
               Located inside ATS Bouquet,
               <br />
               close to the Noida Expressway.
@@ -356,10 +578,10 @@ const ContactPage = () => {
 
             <div className="space-y-4">
               <div>
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#0a2a2a]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#0a2a2a]">
                   Office Address
                 </p>
-                <p className="mt-1.5 text-[10px] leading-[1.7] text-[#5c6f6f]">
+                <p className="mt-1.5 text-[13px] leading-[1.7] text-[#5c6f6f]">
                   307, Tower B, ATS Bouquet
                   <br />
                   Sector 132, Noida
@@ -368,16 +590,16 @@ const ContactPage = () => {
                 </p>
               </div>
               <div>
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#0a2a2a]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#0a2a2a]">
                   Coordinates
                 </p>
-                <p className="mt-1.5 text-[10px] text-[#5c6f6f]">28.510086, 77.379890</p>
+                <p className="mt-1.5 text-[13px] text-[#5c6f6f]">28.510086, 77.379890</p>
               </div>
               <div>
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#0a2a2a]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#0a2a2a]">
                   Nearby Landmark
                 </p>
-                <p className="mt-1.5 text-[10px] text-[#5c6f6f]">Jaypee Wishtown Internal Road</p>
+                <p className="mt-1.5 text-[13px] text-[#5c6f6f]">Jaypee Wishtown Internal Road</p>
               </div>
             </div>
 

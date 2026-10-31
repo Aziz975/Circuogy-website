@@ -102,9 +102,9 @@ function FooterColumn({ title, links, reduceMotion }) {
               reduceMotion
                 ? {}
                 : {
-                    x: 4,
-                    transition: { duration: 0.2 },
-                  }
+                  x: 4,
+                  transition: { duration: 0.2 },
+                }
             }
           >
             <Link
@@ -190,9 +190,9 @@ const Footer = () => {
 
   const reveal = reduceMotion
     ? {
-        hidden: { opacity: 1, y: 0, filter: "blur(0px)" },
-        visible: { opacity: 1, y: 0, filter: "blur(0px)" },
-      }
+      hidden: { opacity: 1, y: 0, filter: "blur(0px)" },
+      visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+    }
     : revealUp;
 
   const hoverLift = reduceMotion ? {} : { y: -5, scale: 1.04 };
@@ -224,9 +224,9 @@ const Footer = () => {
             reduceMotion
               ? {}
               : {
-                  rotate: [0, 12, 0],
-                  scale: [1, 1.04, 1],
-                }
+                rotate: [0, 12, 0],
+                scale: [1, 1.04, 1],
+              }
           }
           transition={{
             duration: 18,
@@ -254,9 +254,9 @@ const Footer = () => {
             reduceMotion
               ? {}
               : {
-                  rotate: [0, -12, 0],
-                  scale: [1, 1.05, 1],
-                }
+                rotate: [0, -12, 0],
+                scale: [1, 1.05, 1],
+              }
           }
           transition={{
             duration: 20,
@@ -282,9 +282,9 @@ const Footer = () => {
             reduceMotion
               ? {}
               : {
-                  y: [0, -8, 0],
-                  opacity: [0.12, 0.24, 0.12],
-                }
+                y: [0, -8, 0],
+                opacity: [0.12, 0.24, 0.12],
+              }
           }
           transition={{
             duration: 7,
@@ -320,32 +320,31 @@ const Footer = () => {
                 reduceMotion
                   ? {}
                   : {
-                      scale: 1.035,
-                      transition: { duration: 0.25 },
-                    }
+                    scale: 1.035,
+                    transition: { duration: 0.25 },
+                  }
               }
             >
               <Link to="/" aria-label="Circulogy home" className="inline-flex max-w-full">
                 <img
                   src="/images/companylogo.png"
                   alt="Circulogy"
-                  className="h-[36px] w-auto max-w-full object-contain sm:h-[40px] lg:h-[43px]"
+                  className="relative lg:right-[20px]  h-[36px]  w-auto max-w-full object-contain sm:h-[40px] lg:h-[43px]"
                 />
               </Link>
             </motion.div>
 
-            <motion.p
-              variants={reveal}
-              className="mt-[12px] text-[12px] font-medium uppercase tracking-[0.20em] text-[#d0d8d6] sm:text-[13px]"
-            >
-              ACT CIRCULAR NOW
-            </motion.p>
+            <img
+              src="/images/act circular now.png"
+              alt="Act Circular Now"
+              className="w-auto mt-5 h-[15px] sm:h-[60px] lg:h-[10px] max-w-none object-contain"
+            />
 
             <motion.p
               variants={reveal}
               className="mt-[25px] max-w-[290px] text-[14px] leading-[23px] text-[#b8c3c1] sm:text-[15px]"
             >
-              A tech-enabled platform connecting and empowering every player in India's circular economy.
+              Recovering the critical minerals and rare earths India’s clean energy future runs on.
             </motion.p>
 
             {/* Address */}
@@ -355,9 +354,9 @@ const Footer = () => {
                 reduceMotion
                   ? {}
                   : {
-                      x: 3,
-                      transition: { duration: 0.2 },
-                    }
+                    x: 3,
+                    transition: { duration: 0.2 },
+                  }
               }
               href="https://maps.google.com/?q=307+Tower+B+ATS+Bouquet+Sector+132+Noida+201304"
               target="_blank"
@@ -375,9 +374,9 @@ const Footer = () => {
                 reduceMotion
                   ? {}
                   : {
-                      x: 3,
-                      transition: { duration: 0.2 },
-                    }
+                    x: 3,
+                    transition: { duration: 0.2 },
+                  }
               }
               href="mailto:info@circulogy.com"
               className="mt-[22px] flex items-center gap-4 text-[14px] text-[#c0c9c8] transition-colors duration-300 hover:text-[#19cdb5]"
@@ -393,9 +392,9 @@ const Footer = () => {
                 reduceMotion
                   ? {}
                   : {
-                      x: 3,
-                      transition: { duration: 0.2 },
-                    }
+                    x: 3,
+                    transition: { duration: 0.2 },
+                  }
               }
               href="tel:+918650907362"
               className="mt-[18px] flex items-center gap-4 text-[14px] text-[#c0c9c8] transition-colors duration-300 hover:text-[#19cdb5]"
@@ -467,9 +466,9 @@ const Footer = () => {
             reduceMotion
               ? false
               : {
-                  opacity: 0,
-                  y: 20,
-                }
+                opacity: 0,
+                y: 20,
+              }
           }
           whileInView={{
             opacity: 1,
@@ -491,8 +490,8 @@ const Footer = () => {
               reduceMotion
                 ? {}
                 : {
-                    opacity: [0.7, 1, 0.7],
-                  }
+                  opacity: [0.7, 1, 0.7],
+                }
             }
             transition={{
               duration: 4,

@@ -45,9 +45,12 @@ export default function FinalCTA() {
 
       
 
-        <h2 className="text-[42px] font-light tracking-[-0.04em] sm:text-[60px] lg:text-[72px]">
-          Act Circular Now.
-        </h2>
+         <img
+          src="/images/act circular now.png"
+          alt="Act Circular Now"
+          className="w-auto h-[22px] sm:h-[60px] lg:h-[42px] max-w-none object-contain"
+        />
+
 
         <p className="text-[15px] font-medium mt-4 max-w-[550px] text-[11px] leading-5 text-white/55">
           Enabling resilient, sustainable and secure critical mineral supply
