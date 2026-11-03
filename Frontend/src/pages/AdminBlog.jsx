@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 
 import {
@@ -8,33 +7,92 @@ import {
   Search,
   Pencil,
   Trash2,
-  LockKeyhole,
   LogOut,
   Image as ImageIcon,
   Save,
   Send,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { authApi, blogApi } from "../lib/api";
 
+import { useNavigate } from "react-router-dom";
+import { authApi, blogApi } from "../lib/api";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const imageUrl = (src) => {
-  if (!src) return "";
-  if (/^(https?:|data:|blob:)/.test(src)) return src;
-  return `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+// ================= DATE HELPERS =================
+
+// Get today's date in local YYYY-MM-DD format
+const getTodayDate = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 };
 
-const emptyArticle = {
-  id: null,
-  category: "",
-  author: "",
-  date: new Date().toLocaleDateString("en-US", {
+// Convert date values from the backend into YYYY-MM-DD
+const formatDateForInput = (dateValue) => {
+  if (!dateValue) return getTodayDate();
+
+  const value = String(dateValue);
+
+  // Handles YYYY-MM-DD or ISO date values
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.substring(0, 10);
+  }
+
+  // Handles dates such as Nov 02, 2026
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return getTodayDate();
+  }
+
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const day = String(parsedDate.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+// Display date in a readable format
+const formatDateForDisplay = (dateValue) => {
+  if (!dateValue) return "—";
+
+  const date = formatDateForInput(dateValue);
+
+  const [year, month, day] = date.split("-").map(Number);
+
+  const parsedDate = new Date(year, month - 1, day);
+
+  return parsedDate.toLocaleDateString("en-US", {
     month: "short",
     day: "2-digit",
     year: "numeric",
-  }),
+  });
+};
+
+// ================= IMAGE URL =================
+
+const imageUrl = (src) => {
+  if (!src) return "";
+
+  if (/^(https?:|data:|blob:)/.test(src)) {
+    return src;
+  }
+
+  return `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+};
+
+// ================= EMPTY ARTICLE =================
+
+const emptyArticle = {
+  id: null,
+  slug: "",
+  category: "",
+  author: "",
+  date: getTodayDate(),
   title: "",
   image: "",
   description: "",
@@ -42,23 +100,47 @@ const emptyArticle = {
   status: "draft",
 };
 
-const toView = (b) => ({
-  ...b,
-  description: b.description || b.excerpt || "",
-  image: b.image || "",
-  date: new Date(b.published_at || b.created_at).toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  }),
+// ================= DATABASE TO FORM DATA =================
+
+const toView = (blog) => ({
+  ...blog,
+
+  id: blog.id ?? null,
+  title: blog.title || "",
+  slug: blog.slug || "",
+  category: blog.category || "",
+  author: blog.author || "",
+
+  description: blog.description || blog.excerpt || "",
+  image: blog.image || blog.cover_image || "",
+
+  date: formatDateForInput(
+    blog.publication_date ||
+      blog.published_at ||
+      blog.created_at
+  ),
+
+  content: blog.content || "",
+  status: blog.status || "draft",
 });
 
+// ================= ADMIN BLOG =================
 
 export default function AdminBlog() {
   const navigate = useNavigate();
 
+  const [blogs, setBlogs] = useState([]);
+  const [form, setForm] = useState({ ...emptyArticle });
+  const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState(null);
+
+  // ================= LOGOUT =================
+
   const handleLogout = async () => {
-    if (!window.confirm("Are you sure you want to log out?")) return;
+    if (!window.confirm("Are you sure you want to log out?")) {
+      return;
+    }
+
     try {
       await authApi.logout();
     } catch (err) {
@@ -68,17 +150,20 @@ export default function AdminBlog() {
     }
   };
 
-  const [blogs, setBlogs] = useState([]);
-  const [form, setForm] = useState({ ...emptyArticle });
-  const [search, setSearch] = useState("");
-  const [editingId, setEditingId] = useState(null);
+  // ================= LOAD BLOGS =================
 
   const loadBlogs = async () => {
     try {
       const res = await blogApi.adminList({ limit: 50 });
-      setBlogs(res.data.map(toView));
+
+      const blogData = Array.isArray(res.data)
+        ? res.data
+        : [];
+
+      setBlogs(blogData.map(toView));
     } catch (err) {
-      alert(err.message);
+      console.error("Failed to load blogs:", err);
+      alert(err.message || "Unable to load blogs.");
     }
   };
 
@@ -86,10 +171,16 @@ export default function AdminBlog() {
     loadBlogs();
   }, []);
 
+  // ================= UPDATE FORM FIELD =================
+
   const updateField = (field, value) => {
     setForm((prev) => {
-      const updated = { ...prev, [field]: value };
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
 
+      // Automatically generate slug for new articles
       if (field === "title" && editingId === null) {
         updated.slug = value
           .toLowerCase()
@@ -98,67 +189,158 @@ export default function AdminBlog() {
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "");
       }
+
       return updated;
     });
   };
 
+  // ================= RESET FORM =================
+
   const resetForm = () => {
-    setForm({ ...emptyArticle });
+    setForm({
+      ...emptyArticle,
+      date: getTodayDate(),
+    });
+
     setEditingId(null);
   };
 
+  // ================= CREATE / UPDATE BLOG =================
+
   const handleSubmit = async (status) => {
+    if (!form.title.trim()) {
+      alert("Please enter a blog title.");
+      return;
+    }
+
+    if (!form.category.trim()) {
+      alert("Please enter a blog category.");
+      return;
+    }
+
+    if (!form.date) {
+      alert("Please select a publication date.");
+      return;
+    }
+
+    if (!form.content.trim()) {
+      alert("Please enter blog content.");
+      return;
+    }
+
+    // Payload matches the current MySQL blogs table
     const payload = {
       title: form.title.trim(),
-      category: form.category,
-      author: form.author,
-      excerpt: form.description,
+      slug:
+        form.slug ||
+        form.title
+          .toLowerCase()
+          .trim()
+          .replace(/['’]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+
+      category: form.category.trim(),
+      author: form.author.trim(),
+
+      publication_date: form.date,
+
+      description: form.description,
       content: form.content,
-      cover_image: form.image,
+      image: form.image,
+
       status,
     };
-    if (editingId === null && form.slug) payload.slug = form.slug;
 
     try {
-      if (editingId !== null) await blogApi.update(editingId, payload);
-      else await blogApi.create(payload);
+      if (editingId !== null) {
+        await blogApi.update(editingId, payload);
+        alert("Blog updated successfully!");
+      } else {
+        await blogApi.create(payload);
+        alert(
+          status === "published"
+            ? "Blog published successfully!"
+            : "Blog saved as draft successfully!"
+        );
+      }
+
       await loadBlogs();
       resetForm();
     } catch (err) {
-      const details = err.fields ? "\n" + Object.values(err.fields).join("\n") : "";
-      alert(err.message + details);
+      console.error("Blog submission failed:", err);
+
+      const details = err.fields
+        ? "\n" + Object.values(err.fields).join("\n")
+        : "";
+
+      alert((err.message || "Unable to save blog.") + details);
     }
   };
+
+  // ================= EDIT BLOG =================
 
   const handleEdit = async (blog) => {
     try {
       const res = await blogApi.adminGet(blog.id);
-      setForm({ ...emptyArticle, ...toView(res.data) });
+
+      setForm({
+        ...emptyArticle,
+        ...toView(res.data),
+      });
+
       setEditingId(blog.id);
-      document.getElementById("create-article")?.scrollIntoView({ behavior: "smooth" });
+
+      document
+        .getElementById("create-article")
+        ?.scrollIntoView({
+          behavior: "smooth",
+        });
     } catch (err) {
-      alert(err.message);
+      alert(err.message || "Unable to load blog details.");
     }
   };
+
+  // ================= DELETE BLOG =================
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this article?")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this article?"
+      )
+    ) {
+      return;
+    }
+
     try {
       await blogApi.remove(id);
+
       await loadBlogs();
-      if (editingId === id) resetForm();
+
+      if (editingId === id) {
+        resetForm();
+      }
+
+      alert("Blog deleted successfully.");
     } catch (err) {
-      alert(err.message);
+      alert(err.message || "Unable to delete blog.");
     }
   };
 
+  // ================= IMAGE UPLOAD =================
 
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
+
     e.target.value = "";
+
     if (!file) return;
 
-    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    if (
+      !["image/png", "image/jpeg", "image/webp"].includes(
+        file.type
+      )
+    ) {
       alert("Please select a PNG, JPG, or WebP image.");
       return;
     }
@@ -170,166 +352,49 @@ export default function AdminBlog() {
 
     try {
       const { url } = await blogApi.uploadImage(file);
+
       updateField("image", url);
     } catch (err) {
-      alert(err.message);
+      alert(err.message || "Image upload failed.");
     }
   };
 
+  // ================= SEARCH BLOGS =================
+
   const filteredBlogs = blogs.filter((blog) => {
     const query = search.toLowerCase();
-    return [blog.title, blog.author, blog.category, blog.description].some(
-      (value) => (value || "").toLowerCase().includes(query)
+
+    return [
+      blog.title,
+      blog.author,
+      blog.category,
+      blog.description,
+    ].some((value) =>
+      (value || "").toLowerCase().includes(query)
     );
   });
 
-
-
-  // export default function AdminBlog({ blogs: initialBlogs = [] }) {
-  //   const navigate = useNavigate();
-
-  // const handleLogout = async () => {
-  //   if (!window.confirm("Are you sure you want to log out?")) return;
-
-  //   try {
-  //     await authApi.logout();
-  //   } catch (err) {
-  //     console.error("Logout failed:", err);
-  //   } finally {
-  //     navigate("/admin", { replace: true });
-  //   }
-  // };
-  //   const [blogs, setBlogs] = useState(() =>
-  //     initialBlogs.length > 0 ? initialBlogs : [initialArticle]
-  //   );
-
-  //   const [form, setForm] = useState({ ...initialArticle });
-  //   const [search, setSearch] = useState("");
-  //   const [editingId, setEditingId] = useState(null);
-
-  //   const [nextId, setNextId] = useState(() => {
-  //     const maxId = Math.max(
-  //       6,
-  //       ...initialBlogs.map((blog) => Number(blog.id) || 0)
-  //     );
-  //     return maxId + 1;
-  //   });
-
-  //   const updateField = (field, value) => {
-  //     setForm((prev) => {
-  //       const updated = { ...prev, [field]: value };
-
-  //       if (field === "title" && editingId === null) {
-  //         updated.slug = value
-  //           .toLowerCase()
-  //           .trim()
-  //           .replace(/['’]/g, "")
-  //           .replace(/[^a-z0-9]+/g, "-")
-  //           .replace(/^-|-$/g, "");
-  //       }
-
-  //       return updated;
-  //     });
-  //   };
-
-  //   const resetForm = () => {
-  //     setForm({ ...emptyArticle });
-  //     setEditingId(null);
-  //   };
-
-  //   const handleSubmit = (status) => {
-  //     if (!form.title.trim()) {
-  //       alert("Please enter an article title.");
-  //       return;
-  //     }
-
-  //     if (!form.category) {
-  //       alert("Please select a category.");
-  //       return;
-  //     }
-
-  //     const article = {
-  //       ...form,
-  //       id: editingId ?? nextId,
-  //       title: form.title.trim(),
-  //       status,
-  //     };
-
-  //     if (editingId !== null) {
-  //       setBlogs((prev) =>
-  //         prev.map((blog) =>
-  //           blog.id === editingId ? article : blog
-  //         )
-  //       );
-  //     } else {
-  //       setBlogs((prev) => [article, ...prev]);
-  //       setNextId((prev) => prev + 1);
-  //     }
-
-  //     resetForm();
-  //   };
-
-  //   const handleEdit = (blog) => {
-  //     setForm({
-  //       ...emptyArticle,
-  //       ...blog,
-  //       slug:
-  //         blog.slug ||
-  //         (blog.title || "")
-  //           .toLowerCase()
-  //           .trim()
-  //           .replace(/['’]/g, "")
-  //           .replace(/[^a-z0-9]+/g, "-")
-  //           .replace(/^-|-$/g, ""),
-  //     });
-
-  //     setEditingId(blog.id);
-
-  //     document.getElementById("create-article")?.scrollIntoView({
-  //       behavior: "smooth",
-  //     });
-  //   };
-
-  //   const handleDelete = (id) => {
-  //     if (!window.confirm("Are you sure you want to delete this article?")) {
-  //       return;
-  //     }
-
-  //     setBlogs((prev) => prev.filter((blog) => blog.id !== id));
-
-  //     if (editingId === id) {
-  //       resetForm();
-  //     }
-  //   };
-
-  //   const filteredBlogs = blogs.filter((blog) => {
-  //     const query = search.toLowerCase();
-
-  //     return [
-  //       blog.title,
-  //       blog.author,
-  //       blog.category,
-  //       blog.description,
-  //     ].some((value) => (value || "").toLowerCase().includes(query));
-  //   });
+  // ================= UI =================
 
   return (
     <div className="min-h-screen bg-[#f8faf9] text-slate-800">
+
       {/* ================= HEADER ================= */}
+
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-8">
+
           <div>
             <p className="text-sm font-bold tracking-[0.2em] text-teal-700">
               CIRCULOGY
             </p>
+
             <h1 className="mt-1 text-xl font-bold text-slate-900">
               Admin Dashboard
             </h1>
           </div>
 
           <div className="flex flex-wrap gap-3">
-           
-
             <button
               type="button"
               onClick={handleLogout}
@@ -339,13 +404,18 @@ export default function AdminBlog() {
               Logout
             </button>
           </div>
+
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl space-y-12 px-5 py-8 md:px-8 md:py-10">
+
         {/* ================= BLOG MANAGEMENT ================= */}
+
         <section id="articles">
+
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+
             <div>
               <p className="mb-2 text-sm font-semibold tracking-wider text-teal-700">
                 CONTENT MANAGEMENT
@@ -368,10 +438,13 @@ export default function AdminBlog() {
               <Plus size={18} />
               Create Blog
             </a>
+
           </div>
 
           {/* Search bar */}
+
           <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+
             <Search size={19} className="text-slate-400" />
 
             <input
@@ -381,13 +454,18 @@ export default function AdminBlog() {
               placeholder="Search by article title, author, or category..."
               className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
             />
+
           </div>
 
           {/* Existing articles */}
+
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+
               <div className="flex items-center gap-2">
                 <BookOpen size={19} className="text-teal-700" />
+
                 <h3 className="font-semibold text-slate-900">
                   All Blog Posts
                 </h3>
@@ -396,18 +474,37 @@ export default function AdminBlog() {
               <span className="rounded-full bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800">
                 {filteredBlogs.length} articles
               </span>
+
             </div>
 
             {filteredBlogs.length > 0 ? (
+
               <div className="overflow-x-auto">
+
                 <table className="w-full min-w-[950px] text-left">
+
                   <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                     <tr>
-                      <th className="px-5 py-4 font-semibold">Article</th>
-                      <th className="px-5 py-4 font-semibold">Author</th>
-                      <th className="px-5 py-4 font-semibold">Category</th>
-                      <th className="px-5 py-4 font-semibold">Date</th>
-                      <th className="px-5 py-4 font-semibold">Status</th>
+                      <th className="px-5 py-4 font-semibold">
+                        Article
+                      </th>
+
+                      <th className="px-5 py-4 font-semibold">
+                        Author
+                      </th>
+
+                      <th className="px-5 py-4 font-semibold">
+                        Category
+                      </th>
+
+                      <th className="px-5 py-4 font-semibold">
+                        Date
+                      </th>
+
+                      <th className="px-5 py-4 font-semibold">
+                        Status
+                      </th>
+
                       <th className="px-5 py-4 text-right font-semibold">
                         Actions
                       </th>
@@ -415,17 +512,22 @@ export default function AdminBlog() {
                   </thead>
 
                   <tbody className="divide-y divide-slate-100">
+
                     {filteredBlogs.map((blog) => (
+
                       <tr
                         key={blog.id}
                         className="transition hover:bg-slate-50/70"
                       >
+
                         <td className="px-5 py-4">
+
                           <div className="flex items-center gap-3">
+
                             {blog.image ? (
                               <img
                                 src={imageUrl(blog.image)}
-                                alt={blog.imageCaption || blog.title || ""}
+                                alt={blog.title || "Blog cover"}
                                 className="h-12 w-16 rounded-lg object-cover"
                               />
                             ) : (
@@ -443,7 +545,9 @@ export default function AdminBlog() {
                                 {blog.description || "No description"}
                               </p>
                             </div>
+
                           </div>
+
                         </td>
 
                         <td className="px-5 py-4 text-sm text-slate-600">
@@ -457,24 +561,25 @@ export default function AdminBlog() {
                         </td>
 
                         <td className="px-5 py-4 text-sm text-slate-500">
-                          {blog.date || "—"}
+                          {formatDateForDisplay(blog.date)}
                         </td>
-
-
 
                         <td className="px-5 py-4">
                           <span
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${blog.status === "published"
-                              ? "bg-green-50 text-green-700"
-                              : "bg-amber-50 text-amber-700"
-                              }`}
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                              blog.status === "published"
+                                ? "bg-green-50 text-green-700"
+                                : "bg-amber-50 text-amber-700"
+                            }`}
                           >
-                            {blog.status || "published"}
+                            {blog.status || "draft"}
                           </span>
                         </td>
 
                         <td className="px-5 py-4">
+
                           <div className="flex justify-end gap-2">
+
                             <button
                               type="button"
                               onClick={() => handleEdit(blog)}
@@ -492,15 +597,25 @@ export default function AdminBlog() {
                             >
                               <Trash2 size={16} />
                             </button>
+
                           </div>
+
                         </td>
+
                       </tr>
+
                     ))}
+
                   </tbody>
+
                 </table>
+
               </div>
+
             ) : (
+
               <div className="px-6 py-16 text-center">
+
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
                   <BookOpen size={25} />
                 </div>
@@ -521,28 +636,38 @@ export default function AdminBlog() {
                   className="mt-5 inline-flex items-center gap-2 font-semibold text-teal-700 hover:text-teal-800"
                 >
                   <Plus size={17} />
-                  Create an blog
+                  Create a blog
                 </a>
+
               </div>
+
             )}
+
           </div>
+
         </section>
 
         {/* ================= CREATE / EDIT ARTICLE ================= */}
+
         <section id="create-article" className="scroll-mt-8">
+
           <div className="mb-6">
+
             <p className="mb-2 text-sm font-semibold tracking-wider text-teal-700">
               CONTENT EDITOR
             </p>
 
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-              {editingId !== null ? "Edit Article" : "Create a New Article"}
+              {editingId !== null
+                ? "Edit Article"
+                : "Create a New Article"}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
               Share fresh perspectives, practical insights, and ideas that help
               founders and businesses grow.
             </p>
+
           </div>
 
           <form
@@ -552,9 +677,13 @@ export default function AdminBlog() {
             }}
             className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_35px_rgba(15,23,42,0.04)] md:p-9"
           >
+
             <div className="space-y-7">
-              {/* Article ID and Date */}
+
+              {/* Blog ID and Publication Date */}
+
               <div className="grid gap-6 md:grid-cols-2">
+
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-800">
                     Blog ID
@@ -569,9 +698,11 @@ export default function AdminBlog() {
                   />
 
                   <p className="mt-1 text-xs text-slate-400">
-                    IDs are assigned automatically to new blog
+                    IDs are assigned automatically to new blogs.
                   </p>
                 </div>
+
+                {/* Editable Publication Date */}
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-800">
@@ -579,19 +710,24 @@ export default function AdminBlog() {
                   </label>
 
                   <input
-                    type="text"
-                    value={form.date}
-                    readOnly
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-500 outline-none"
+                    type="date"
+                    required
+                    value={form.date || ""}
+                    onChange={(e) =>
+                      updateField("date", e.target.value)
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-700 outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                   />
 
                   <p className="mt-1 text-xs text-slate-400">
-                    Set automatically when the blog is published.
+                    Select the date you want displayed on your blog.
                   </p>
                 </div>
+
               </div>
 
-              {/* Article Title */}
+              {/* Blog Title */}
+
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
                   Blog Title
@@ -601,15 +737,18 @@ export default function AdminBlog() {
                   type="text"
                   required
                   value={form.title}
-                  onChange={(e) => updateField("title", e.target.value)}
-                  placeholder="Give your blog compelling title"
+                  onChange={(e) =>
+                    updateField("title", e.target.value)
+                  }
+                  placeholder="Give your blog a compelling title"
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                 />
               </div>
 
-
               {/* Author and Category */}
+
               <div className="grid gap-6 md:grid-cols-2">
+
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-800">
                     Author Name
@@ -618,7 +757,9 @@ export default function AdminBlog() {
                   <input
                     type="text"
                     value={form.author}
-                    onChange={(e) => updateField("author", e.target.value)}
+                    onChange={(e) =>
+                      updateField("author", e.target.value)
+                    }
                     placeholder="Enter author name"
                     className="w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                   />
@@ -629,28 +770,22 @@ export default function AdminBlog() {
                     Category
                   </label>
 
-                  <select
+                  <input
+                    type="text"
                     required
                     value={form.category}
-                    onChange={(e) => updateField("category", e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-700 outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
-                  >
-                    <option value="" disabled>
-                      Select category
-                    </option>
-                    <option value="Startup Mentoring">
-                      Startup Mentoring
-                    </option>
-                    <option value="Founder Growth">Founder Growth</option>
-                    <option value="STRATEGY & SCALE">
-                      Strategy &amp; Scale
-                    </option>
-                    <option value="Digital India">Digital India</option>
-                  </select>
+                    onChange={(e) =>
+                      updateField("category", e.target.value)
+                    }
+                    placeholder="Enter blog category"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
+                  />
                 </div>
+
               </div>
 
               {/* Description */}
+
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
                   Short Description
@@ -667,7 +802,8 @@ export default function AdminBlog() {
                 />
               </div>
 
-              {/* Content */}
+              {/* Blog Content */}
+
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
                   Blog Content
@@ -675,31 +811,37 @@ export default function AdminBlog() {
 
                 <textarea
                   rows={9}
+                  required
                   value={form.content}
-                  onChange={(e) => updateField("content", e.target.value)}
+                  onChange={(e) =>
+                    updateField("content", e.target.value)
+                  }
                   placeholder="Start writing your blog..."
                   className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3.5 text-sm leading-7 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
                 />
               </div>
 
-              {/* Image */}
+              {/* Cover Image */}
 
-              {/* Direct Cover Image Upload */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
                   Cover Image
                 </label>
 
                 <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-5">
+
                   {form.image ? (
+
                     <div className="space-y-4">
+
                       <img
                         src={imageUrl(form.image)}
-                        alt={form.imageCaption || form.title || "Cover preview"}
+                        alt={form.title || "Cover preview"}
                         className="max-h-64 w-full rounded-xl border border-slate-200 object-cover"
                       />
 
                       <div className="flex flex-wrap gap-3">
+
                         <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                           <ImageIcon size={17} />
                           Change Image
@@ -719,10 +861,15 @@ export default function AdminBlog() {
                         >
                           Remove Image
                         </button>
+
                       </div>
+
                     </div>
+
                   ) : (
+
                     <label className="flex cursor-pointer flex-col items-center justify-center gap-3 py-7 text-center">
+
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
                         <ImageIcon size={24} strokeWidth={1.7} />
                       </div>
@@ -731,6 +878,7 @@ export default function AdminBlog() {
                         <p className="text-sm font-semibold text-slate-800">
                           Upload your blog cover image
                         </p>
+
                         <p className="mt-1 text-xs text-slate-500">
                           PNG, JPG, or WebP · Maximum 5 MB
                         </p>
@@ -747,14 +895,16 @@ export default function AdminBlog() {
                         className="hidden"
                         onChange={handleImageChange}
                       />
+
                     </label>
+
                   )}
+
                 </div>
               </div>
 
+              {/* Blog Status */}
 
-
-              {/* Status */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
                   Blog Status
@@ -766,8 +916,10 @@ export default function AdminBlog() {
                 </p>
               </div>
 
-              {/* Form buttons */}
+              {/* Form Buttons */}
+
               <div className="flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+
                 <button
                   type="button"
                   onClick={() => handleSubmit("draft")}
@@ -782,7 +934,9 @@ export default function AdminBlog() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800"
                 >
                   <Send size={17} />
-                  {editingId !== null ? "Update Blog" : "Publish Blog"}
+                  {editingId !== null
+                    ? "Update Blog"
+                    : "Publish Blog"}
                 </button>
 
                 {editingId !== null && (
@@ -794,15 +948,21 @@ export default function AdminBlog() {
                     Cancel Edit
                   </button>
                 )}
+
               </div>
+
             </div>
+
           </form>
+
         </section>
 
         {/* ================= FOOTER ================= */}
+
         <footer className="border-t border-slate-200 py-6 text-center text-sm text-slate-400">
           © {new Date().getFullYear()} Circulogy. Admin Dashboard.
         </footer>
+
       </main>
     </div>
   );

@@ -35,7 +35,7 @@ function NavLinks() {
 
 
        {/* login button */}
-      <div className="inline-flex items-center gap-1 rounded-full bg-[#f5f3f0] p-1 ">
+      {/* <div className="inline-flex items-center gap-1 rounded-full bg-[#f5f3f0] p-1 ">
         <Link
           to="/"
           className={`rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${location.pathname === "/"
@@ -55,7 +55,7 @@ function NavLinks() {
         >
           Admin
         </Link>
-      </div>
+      </div> */}
     </nav>
   );
 }
