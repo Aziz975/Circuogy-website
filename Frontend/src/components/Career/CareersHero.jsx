@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { motion } from "motion/react"; // or: import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 
 const CareersHero = () => {
@@ -129,9 +130,9 @@ const CareersHero = () => {
                 transitionDelay: "100ms",
               }}
             >
-             
 
-            
+
+
             </div>
 
             {/* =================================================
@@ -248,42 +249,42 @@ const CareersHero = () => {
               {/* =================================================
                   EXPLORE OPPORTUNITIES
               ================================================= */}
-              <button
-                type="button"
+              <Link
+                to="/opportunities"
                 className="
-                  group relative
-                  flex h-[60px] items-center gap-3
-                  overflow-hidden
-                  rounded-full
-                  bg-[#3eb4a1]
-                  px-7
-                  text-[15px]
-                  font-medium
-                  text-white
-                  shadow-[0_10px_25px_rgba(43,157,140,0.15)]
-                  transition-all
-                  duration-500
-                  ease-out
+    group relative
+    flex h-[60px] items-center gap-3
+    overflow-hidden
+    rounded-full
+    bg-[#3eb4a1]
+    px-7
+    text-[15px]
+    font-medium
+    text-white
+    shadow-[0_10px_25px_rgba(43,157,140,0.15)]
+    transition-all
+    duration-500
+    ease-out
 
-                  hover:-translate-y-1.5
-                  hover:bg-[#299f8f]
-                  hover:shadow-[0_18px_38px_rgba(43,157,140,0.28)]
+    hover:-translate-y-1.5
+    hover:bg-[#299f8f]
+    hover:shadow-[0_18px_38px_rgba(43,157,140,0.28)]
 
-                  active:translate-y-0
+    active:translate-y-0
 
-                  sm:h-[62px]
-                  sm:px-8
-                "
+    sm:h-[62px]
+    sm:px-8
+  "
               >
                 {/* Hover shine */}
                 <span
                   className="
-                    absolute inset-y-0 -left-[100%] w-[70%]
-                    skew-x-[-20deg]
-                    bg-white/15
-                    transition-all duration-700
-                    group-hover:left-[120%]
-                  "
+      absolute inset-y-0 -left-[100%] w-[70%]
+      skew-x-[-20deg]
+      bg-white/15
+      transition-all duration-700
+      group-hover:left-[120%]
+    "
                 />
 
                 <span className="relative z-10">
@@ -294,96 +295,19 @@ const CareersHero = () => {
                   size={18}
                   strokeWidth={1.8}
                   className="
-                    relative z-10
-                    transition-all duration-500
-                    ease-out
-                    group-hover:translate-x-1
-                    group-hover:-translate-y-1
-                    group-hover:scale-110
-                  "
+      relative z-10
+      transition-all duration-500
+      ease-out
+      group-hover:translate-x-1
+      group-hover:-translate-y-1
+      group-hover:scale-110
+    "
                 />
-              </button>
+              </Link>
 
-              {/* =================================================
-                  SUBMIT YOUR CV
-              ================================================= */}
-              <button
-                type="button"
-                onClick={handleCVUpload}
-                className="
-                  group
-                  flex flex-col items-start gap-2
-                  text-[15px]
-                  font-medium
-                  text-[#284c48]
-                  transition-all duration-300
-                  hover:-translate-y-1
-                  sm:text-[16px]
-                "
-              >
-                <span className="flex items-center gap-3 font-semibold">
 
-                  <span
-                    className="
-                      transition-colors duration-300
-                      group-hover:text-[#299f8f]
-                    "
-                  >
-                    Submit Your CV
-                  </span>
 
-                  <ArrowDown
-                    size={21}
-                    strokeWidth={2}
-                    className="
-                      transition-all duration-500
-                      ease-out
-                      group-hover:translate-y-1.5
-                      group-hover:text-[#299f8f]
-                    "
-                  />
-                </span>
 
-                {/* Animated underline */}
-                <span className="relative block h-[2px] w-[131px] overflow-hidden bg-[#d4e6e2]">
-                  <span
-                    className="
-                      absolute inset-y-0 left-0
-                      w-full
-                      origin-left
-                      scale-x-100
-                      bg-[#3da997]
-                      transition-transform
-                      duration-500
-                      ease-out
-                      group-hover:scale-x-0
-                    "
-                  />
-
-                  <span
-                    className="
-                      absolute inset-y-0 left-0
-                      w-full
-                      origin-right
-                      scale-x-0
-                      bg-[#299f8f]
-                      transition-transform
-                      duration-500
-                      ease-out
-                      group-hover:scale-x-100
-                    "
-                  />
-                </span>
-              </button>
-
-              {/* FILE INPUT */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="hidden"
-              />
             </div>
           </div>
 
@@ -646,42 +570,42 @@ const CareersHero = () => {
                 transitionDelay: "1050ms",
               }}
             >
-         
-<motion.div
-  initial={{ opacity: 0, scale: 0.6 }}
-  animate={{ opacity: 1, scale: 1 }}
-  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-  whileHover={{ scale: 1.1 }}
-  className="
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                whileHover={{ scale: 1.1 }}
+                className="
     relative flex h-[50px] w-[50px]
     items-center justify-center
     sm:h-[58px] sm:w-[58px]
     md:h-[66px] md:w-[66px]
   "
->
-  {/* Soft pulsing glow behind the ring */}
-  <motion.span
-    className="absolute inset-0 rounded-full bg-[#55b8aa]/20"
-    animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0, 0.5] }}
-    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-  />
+              >
+                {/* Soft pulsing glow behind the ring */}
+                <motion.span
+                  className="absolute inset-0 rounded-full bg-[#55b8aa]/20"
+                  animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                />
 
-  {/* Rotating dashed ring */}
-  <motion.div
-    className="absolute inset-0 rounded-full border border-dashed border-[#55b8aa]"
-    animate={{ rotate: 360 }}
-    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-  />
+                {/* Rotating dashed ring */}
+                <motion.div
+                  className="absolute inset-0 rounded-full border border-dashed border-[#55b8aa]"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                />
 
-  {/* Logo with subtle breathing effect */}
-  <motion.img
-    src="/images/logo-white.png"
-    alt=""
-    className="relative h-[40px] w-[50px] object-contain"
-    animate={{ scale: [1, 1.06, 1] }}
-    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-  />
-</motion.div>
+                {/* Logo with subtle breathing effect */}
+                <motion.img
+                  src="/images/logo-white.png"
+                  alt=""
+                  className="relative h-[40px] w-[50px] object-contain"
+                  animate={{ scale: [1, 1.06, 1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </motion.div>
             </div>
 
 

@@ -18,6 +18,8 @@ import AdminLogin from "./pages/AdminLogin.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import AdminBlog from "./pages/AdminBlog.jsx";
 import ContactPage from "./components/Navbar/ContactPage.jsx";
+import PartnersSection from "./components/Home/PartnerSection.jsx";
+import OpenPositions from "./components/Career/OpenPositions.jsx";
 
 function App() {
   return (
@@ -37,6 +39,9 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/exploremining" element={<ExploreMining />} />
         <Route path="/contactus" element={<ContactPage />} />
+        <Route path="/partnersection" element={<PartnersSection />} />
+        <Route path="/opportunities" element={<OpenPositions />}
+        />
 
 
         {/* Public admin login */}

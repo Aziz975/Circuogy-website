@@ -1,5 +1,7 @@
 import React, { useRef } from "react";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+
 
 export default function FinalCTA() {
   const videoRef = useRef(null);
@@ -7,7 +9,7 @@ export default function FinalCTA() {
   const handleMouseEnter = () => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch(() => { });
     }
   };
 
@@ -43,9 +45,9 @@ export default function FinalCTA() {
       {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-[350px] max-w-[1000px] flex-col items-center justify-center text-center">
 
-      
 
-         <img
+
+        <img
           src="/images/act circular now.png"
           alt="Act Circular Now"
           className="w-auto h-[22px] sm:h-[60px] lg:h-[42px] max-w-none object-contain"
@@ -57,13 +59,13 @@ export default function FinalCTA() {
           chains through circularity.
         </p>
 
-        <a
-          href="/partnersection"
-          className="mt-7 flex items-center gap-3 rounded-full bg-[#19cdb5] px-6 py-3 text-[15px] font-medium text-[white]"
+        <Link
+          to="/partnersection"
+          className="mt-7 flex items-center gap-3 rounded-full bg-[#19cdb5] px-6 py-3 text-[15px] font-medium text-white"
         >
           Partner With Us
           <ArrowRight size={18} />
-        </a>
+        </Link>
       </div>
     </section>
   );

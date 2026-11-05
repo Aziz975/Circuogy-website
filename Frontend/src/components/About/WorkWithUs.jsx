@@ -136,7 +136,7 @@ export default function WorkWithUs() {
 
             {/* Description */}
             <p className={`mt-8 max-w-[650px] text-[15px] leading-[1.65] text-[#bdc8c5] transition-[transform,opacity,filter] duration-1000 delay-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:text-[17px] sm:leading-[1.65] ${visible ? "translate-y-0 opacity-100 blur-0" : "translate-y-6 opacity-0 blur-[3px]"}`}>
-              Whether you are an investor, an industrial buyer of critical minerals or rare earths, an EPR-obligated producer, or a policy partner Circulogy is building the infrastructure India needs.
+              Whether you are an investor, an industrial buyer of critical minerals or rare earths, an EPR obligated producer, or a policy partner Circulogy is building the infrastructure India needs.
             </p>
 
            

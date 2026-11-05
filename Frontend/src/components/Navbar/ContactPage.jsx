@@ -359,17 +359,7 @@ const ContactPage = () => {
                     </a>
                   </div>
 
-                  {/* OFFICE ADDRESS */}
-                  <div className="contact-info-item min-w-0">
-                    <h3 className="mb-2 text-[15px] font-bold text-[#152A27]">
-                      Office Address
-                    </h3>
-
-                    <p className="text-[12px] leading-[19px] text-[#82938F] sm:text-[13px]">
-                      18/15B, Silver Wing Wave One, Sector 18,
-                      GB Nagar, Noida, Uttar Pradesh 201301
-                    </p>
-                  </div>
+                
 
                   {/* BUSINESS HOURS */}
                   <div className="contact-info-item min-w-0">

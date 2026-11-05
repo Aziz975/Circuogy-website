@@ -587,44 +587,8 @@ const OpenPositions = () => {
                 </motion.div>
               </AnimatePresence>
 
-              {/* View Opening Button */}
-              <motion.a
-                href={activeRole.link}
-                whileHover={
-                  shouldReduceMotion
-                    ? {}
-                    : {
-                        scale: 1.025,
-                        transition: {
-                          duration: 0.22,
-                          ease: EASE,
-                        },
-                      }
-                }
-                whileTap={
-                  shouldReduceMotion ? {} : { scale: 0.975 }
-                }
-                className="mt-[39px] inline-flex min-h-[48px] items-center gap-[18px] rounded-full bg-[#f3f8f5] py-[6px] pl-[20px] pr-[7px] text-[13px] font-semibold text-[#14251f] transition-colors duration-300 hover:bg-[#dff4ed] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#399f90] sm:mt-[47px] sm:pl-[22px]"
-              >
-                <span>View opening</span>
 
-                <motion.span
-                  whileHover={
-                    shouldReduceMotion
-                      ? {}
-                      : {
-                          rotate: 45,
-                        }
-                  }
-                  transition={{
-                    duration: 0.25,
-                    ease: EASE,
-                  }}
-                  className="flex h-[35px] w-[35px] items-center justify-center rounded-full bg-[#399f90] text-white"
-                >
-                  <ArrowUpRight size={18} strokeWidth={1.8} />
-                </motion.span>
-              </motion.a>
+        
             </div>
           </div>
         </motion.div>
