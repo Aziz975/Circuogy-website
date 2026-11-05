@@ -398,11 +398,11 @@ const FeaturedArticle = ({ article, onRead }) => {
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#001f1e]/35 via-transparent to-white/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center pb-3">
+        {/* <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center pb-3">
           <span className="px-3 text-center text-[13px] font-bold uppercase tracking-[-0.02em] text-white opacity-90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-100 sm:text-[15px]">
             {article.imageCaption || article.title}
           </span>
-        </div>
+        </div> */}
       </div>
 
       <div className="relative z-10 mt-4 flex flex-wrap items-center gap-3">
