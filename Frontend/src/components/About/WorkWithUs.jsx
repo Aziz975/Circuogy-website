@@ -139,16 +139,7 @@ export default function WorkWithUs() {
               Whether you are an investor, an industrial buyer of critical minerals or rare earths, an EPR-obligated producer, or a policy partner Circulogy is building the infrastructure India needs.
             </p>
 
-            {/* Buttons */}
-            <div className={`mt-9 flex flex-wrap gap-4 transition-[transform,opacity,filter] duration-1000 delay-[850ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${visible ? "translate-y-0 opacity-100 blur-0" : "translate-y-6 opacity-0 blur-[3px]"}`}>
-              <a href="#contact" className="group inline-flex h-[63px] items-center justify-center gap-3 rounded-full bg-[#29b6a2] px-8 text-[15px] font-bold text-white shadow-[0_10px_35px_rgba(25,181,160,0.22)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#32c3ae] hover:shadow-[0_15px_45px_rgba(25,181,160,0.3)] sm:px-9">
-                Get in Touch
-                <ArrowRight size={19} strokeWidth={2} className="transition-transform duration-300 group-hover:translate-x-1" />
-              </a>
-              <a href="#solutions" className="inline-flex h-[63px] items-center justify-center rounded-full border border-white/[0.18] bg-white/[0.13] px-8 text-[15px] font-semibold text-[#edf2f0] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.18] sm:px-9">
-                Explore Solutions
-              </a>
-            </div>
+           
           </div>
         </div>
       </div>

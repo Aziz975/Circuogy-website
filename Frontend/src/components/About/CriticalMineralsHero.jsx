@@ -120,27 +120,7 @@ export default function CriticalMineralsHero() {
             </h1>
 
 
-            {/* Buttons */}
-            <div className="mt-8 flex flex-wrap gap-4 animate-[fadeUp_.8s_ease-out_.7s_forwards] opacity-0">
-
-              <a
-                href="#contact"
-                className=" group inline-flex items-center gap-3 rounded-full bg-[#239f8e] px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(35,159,142,0.2)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#168575]"
-              >
-                Get in Touch
-                <span className="transition-transform duration-300 group-hover:translate-x-1">
-                  →
-                </span>
-              </a>
-
-              <a
-                href="#work"
-                className="inline-flex items-center gap-3 rounded-full border border-[#79c9bf] bg-white/70 px-7 py-3.5 text-sm font-bold text-[#14201e] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white"
-              >
-                Explore Our Work
-              </a>
-
-            </div>
+         
           </div>
 
 

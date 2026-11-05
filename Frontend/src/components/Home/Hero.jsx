@@ -327,7 +327,7 @@ const Hero = () => {
                 whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
               >
                 <Link
-                  to="/contact"
+                  to="/contactus"
                   className="flex h-[50px] items-center justify-center gap-3 rounded-full border border-[#29393a] bg-[#061012]/60 px-8 text-[16px] font-medium text-[#d7dfdd] backdrop-blur-sm transition-all duration-300 hover:border-[#20b8a7] hover:bg-[#20b8a7]/10 hover:text-[#20b8a7] sm:px-10 sm:text-[17px]"
                 >
                   Talk to Us

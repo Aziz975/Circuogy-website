@@ -58,7 +58,7 @@ export default function FinalCTA() {
         </p>
 
         <a
-          href="#contact"
+          href="/partnersection"
           className="mt-7 flex items-center gap-3 rounded-full bg-[#19cdb5] px-6 py-3 text-[15px] font-medium text-[white]"
         >
           Partner With Us
