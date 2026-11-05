@@ -500,7 +500,7 @@ const Footer = () => {
             }}
             className="text-[9px] font-semibold uppercase tracking-[0.28em] text-[#a6b0ae] sm:text-[10px] sm:tracking-[0.35em]"
           >
-            CIRCULAR TODAY. BRIGHTER TOMORROW.
+            CIRCULAR TODAY. BRIGHTER TOMORROWwwww.
           </motion.p>
         </motion.div>
       </div>
